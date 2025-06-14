@@ -22,7 +22,7 @@ const HeroBannerFour = () => {
              <div className="tphero__wrapper p-relative">
                 <h5 className="tphero__sub-title mb-40">Top Seller In The Week</h5>
                 <h3 className="tphero__title mb-25">Perfect <br/> Your Healthy Life.</h3>
-                <p>Presentation matters. Our fresh Vietnamese vegetable rolls <br/> look good and taste even better.</p>
+                <p>Experience the purity of tradition with REO Spices — handcrafted turmeric, chili, black pepper, and more. 100% organic, zero additives, straight from farm to kitchen.</p>
                 <div className="tphero__btn">
                    <Link href="/shop" className="tp-btn banner-btn">Shop Now</Link>
                 </div>

@@ -51,16 +51,16 @@ export const hero_slider_three_data = [
   {
     id:1,
     subtitle:'Special Offer',
-    title:'Vegetable <br/> Good For Health',
-    sm_desc:'Presentation matters. Our fresh Vietnamese vegetable rolls <br/> look good and taste even better',
-    bg_img:'/assets/img/slider/slider-bg-6.png',
+    title:'Spices & Powders <br/> Good For Health',
+    sm_desc:'Experience the purity of tradition with REO Spices <br/> handcrafted turmeric, chili, black pepper, and more. <br/> 100% organic, zero additives, straight from farm to kitchen.',
+    bg_img:'/assets/img/slider/reo-spices-home-slider.png',
   },
   {
-    id:2,
-    subtitle:'Top Deals',
-    title:'Hot Deals <br/> Recovery For Health',
-    sm_desc:'Presentation matters. Our fresh Vietnamese vegetable rolls <br/> look good and taste even better',
-    bg_img:'/assets/img/slider/slider-bg-7.png',
+    id: 2,
+    subtitle: 'Top Deals',
+    title: 'Hot Deals <br/> Natures Healing Touch',
+    sm_desc: 'Discover the power of 100% organic spices — <br/> pure, potent, and good for your health.',
+    bg_img: '/assets/img/slider/bowl-with-juniper-berries.png',
   }
 ]
 // hero slider five data 
