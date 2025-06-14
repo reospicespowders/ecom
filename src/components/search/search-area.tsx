@@ -30,14 +30,7 @@ const SearchArea = () => {
     setActiveTab(tab);
   }
   const searchParams = useSearchParams();
-  const category = searchParams.get("category");
   const searchText = searchParams.get("searchText");
-
-  const categoryMatch = (item: IProductData) => {
-    return (
-      !category || item.category.name.split(" ").join("-").toLowerCase().includes(category)
-    );
-  };
 
   const titleMatch = (item: IProductData) => {
     return (
@@ -52,7 +45,7 @@ const SearchArea = () => {
         const products = await getProducts();
         setProductItems(
           products.filter(
-            (item: IProductData) => categoryMatch(item) && titleMatch(item)
+            (item: IProductData) => titleMatch(item)
           )
         );
       } catch (error) {
@@ -64,7 +57,7 @@ const SearchArea = () => {
     }
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, searchText]);
+  }, [searchText]);
 
   const handleSorting = (item: { value: string; label: string }) => {
     if (item.value === "new") {

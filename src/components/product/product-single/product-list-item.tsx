@@ -44,7 +44,7 @@ const ProductListItem = ({ product }: IProps) => {
   return (
     <div className="tplist__product d-flex align-items-center justify-content-between mb-20">
       <div className="tplist__product-img p-relative">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>
           <Image
             src={image}
             alt={title}
@@ -85,9 +85,13 @@ const ProductListItem = ({ product }: IProps) => {
         </div>
       </div>
       <div className="tplist__content">
-        <span className="tplist__content-weight">{category.name}</span>
+        <span className="tplist__content-weight">
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}`}>
+            {category.name}
+          </Link>
+        </span>
         <h4 className="tplist__content-title">
-          <Link href={`/product/${product.slug}`}>{title}</Link>
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{title}</Link>
         </h4>
         <div className="tplist__rating mb-5">
           <Rating allowFraction size={16} initialValue={averageRating(reviews)} readonly={true} />

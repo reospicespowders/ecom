@@ -120,7 +120,7 @@ export async function getProductsByCategory(categorySlug: string) {
 }
 
 export async function getProductsByBrand(brandName: string) {
-  const query = `*[_type == "product" && brand == $brandName] {
+  const query = `*[_type == "product" && brand match $brandName] {
     _id,
     id,
     sku,
@@ -132,7 +132,7 @@ export async function getProductsByBrand(brandName: string) {
       _id,
       id,
       name,
-      slug
+      "slug": slug.current
     },
     quantity,
     unit,

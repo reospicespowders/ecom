@@ -39,7 +39,7 @@ const HeaderNav = () => {
           <ul className="sub-menu">
             {categories.map((category) => (
               <li key={category._id}>
-                <Link href={`/shop?category=${category.slug.current}`}>
+                <Link href={`/shop/${category.slug.current}`}>
                   {category.name}
                 </Link>
               </li>

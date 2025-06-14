@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { IProductData } from '@/types/product-d-t';
 import { getProducts, getProductsByCategory } from '@/lib/sanity.fetch';
 import ProductCard from './product-card';
-import { usePathname, useSearchParams } from 'next/navigation';
 
-const ProductArea = () => {
+interface IProps {
+  categorySlug?: string;
+}
+
+const ProductArea = ({ categorySlug }: IProps) => {
   const [products, setProducts] = useState<IProductData[]>([]);
   const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const categorySlug = searchParams.get('category');
 
   useEffect(() => {
     const fetchProducts = async () => {

@@ -21,7 +21,7 @@ const WishlistItem = ({ product }: IProps) => {
   return (
     <tr>
       <td className="product-thumbnail">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || ''}/${product.slug}`}>
           <Image
             src={product.image}
             width={100}
@@ -31,7 +31,7 @@ const WishlistItem = ({ product }: IProps) => {
         </Link>
       </td>
       <td className="product-name">
-        <Link href={`/shop-details/${product.id}`}>{product.title}</Link>
+        <Link href={`/shop/${product.category?.slug?.current || ''}/${product.slug}`}>{product.title}</Link>
       </td>
       <td className="product-price">
         {product.sale_price ? (

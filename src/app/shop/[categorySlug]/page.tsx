@@ -7,11 +7,17 @@ import Footer from "@/layouts/footer/footer";
 import ShopArea from "@/components/shop/shop-area";
 import { Suspense } from "react";
 
-export const metadata: Metadata = {
-  title: "Shop - Orfarm",
+type CategoryPageProps = {
+  params: { categorySlug: string };
 };
 
-export default function ShopPage() {
+export const metadata: Metadata = {
+  title: "Category Shop - Orfarm",
+};
+
+export default function CategoryShopPage({ params }: CategoryPageProps) {
+  const { categorySlug } = params;
+
   return (
     <Wrapper>
       {/* header start */}
@@ -20,12 +26,12 @@ export default function ShopPage() {
 
       <main>
         {/* breadcrumb-area-start */}
-        <BreadcrumbTwo title="Shop" bgClr="grey-bg" />
+        <BreadcrumbTwo title={categorySlug.replace(/-/g, ' ')} bgClr="grey-bg" />
         {/* breadcrumb-area-end */}
 
         {/* shop area start */}
         <Suspense fallback={<div>Loading shop...</div>}>
-          <ShopArea categorySlug={undefined} />
+          <ShopArea categorySlug={categorySlug} />
         </Suspense>
         {/* shop area end */}
 
@@ -39,4 +45,4 @@ export default function ShopPage() {
       {/* footer end */}
     </Wrapper>
   );
-}
+} 

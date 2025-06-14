@@ -45,7 +45,7 @@ const ProductCard = ({ product }: IProps) => {
   return (
     <div className="tpproduct">
       <div className="tpproduct__thumb p-relative text-center">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>
           <Image
             src={image}
             alt="product-img"
@@ -102,7 +102,7 @@ const ProductCard = ({ product }: IProps) => {
           {category.name}
         </span>
         <h4 className="tpproduct__title">
-          <Link href={`/product/${product.slug}`}>{title}</Link>
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{title}</Link>
         </h4>
         <div className="tpproduct__price">
           <span>${price.toFixed(2)}</span>

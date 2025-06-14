@@ -30,7 +30,7 @@ const ProductSmSingle = ({ product }: IProps) => {
       </div>
       <div className="tpbrandproduct__contact">
         <span className="tpbrandproduct__product-title">
-          <Link href={`/product/${product.slug}`}>{product.title}</Link>
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{product.title}</Link>
         </span>
         <div className="tpproduct__rating mb-5">
          <Rating allowFraction size={16} initialValue={averageRating(product.reviews)} readonly={true} />

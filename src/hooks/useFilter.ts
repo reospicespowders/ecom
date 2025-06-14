@@ -7,11 +7,10 @@ import { useSearchParams } from 'next/navigation';
 import { getProducts, getProductsByCategory } from '@/lib/sanity.fetch';
 import React from 'react';
 
-export function useProductFilter() {
+export function useProductFilter(initialCategorySlug?: string) {
   const [products, setProducts] = useState<IProductData[]>([]);
   const { category, subCategory, sizes, colors, brand, priceValue, ratingValue } = useAppSelector((state) => state.filter);
   const searchParams = useSearchParams();
-  const searchCategory = searchParams.get("category");
   const searchText = searchParams.get("searchText");
 
   // Fetch products from Sanity
@@ -19,8 +18,8 @@ export function useProductFilter() {
     const fetchProducts = async () => {
       try {
         let data;
-        if (searchCategory) {
-          data = await getProductsByCategory(searchCategory);
+        if (initialCategorySlug) {
+          data = await getProductsByCategory(initialCategorySlug);
         } else {
           data = await getProducts();
         }
@@ -31,7 +30,7 @@ export function useProductFilter() {
     };
 
     fetchProducts();
-  }, [searchCategory]);
+  }, [initialCategorySlug]);
 
   // Memoized filtering logic
   const filteredProducts = React.useMemo(() => {
@@ -72,23 +71,17 @@ export function useProductFilter() {
       return true;
     });
 
-    // Filter by search text and category from URL
-    const categoryMatch = (item: IProductData) => {
-      return (
-        !searchCategory || item.category?.name?.toLowerCase().includes(searchCategory.toLowerCase())
-      );
-    };
-  
+    // Filter by search text
     const titleMatch = (item: IProductData) => {
       return (
         !searchText || item.title.toLowerCase().includes(searchText.toLowerCase())
       );
     };
 
-    currentFilteredData = currentFilteredData.filter((item) => categoryMatch(item) && titleMatch(item));
+    currentFilteredData = currentFilteredData.filter((item) => titleMatch(item));
 
     return currentFilteredData;
-  }, [products, category, subCategory, colors, brand, priceValue, ratingValue, searchCategory, searchText]);
+  }, [products, category, subCategory, colors, brand, priceValue, ratingValue, searchText]);
 
   const handleSorting = (item: { value: string; label: string }) => {
     let sortedProducts = [...filteredProducts]; // Sort the currently filtered products
@@ -99,7 +92,6 @@ export function useProductFilter() {
     } else if (item.value === "low") {
       sortedProducts.sort((a, b) => a.price - b.price);
     }
-    // For 'Default sorting', we don't need to do anything as filteredProducts is already in its default order
     setProducts(sortedProducts); // This will update the raw products, which will re-trigger memo and filtering
   };
 

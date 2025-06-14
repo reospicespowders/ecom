@@ -70,7 +70,7 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
       className={`tpproduct p-relative ${cls ? cls : ""} ${progress ? "tpprogress__hover" : ""}`}
     >
       <div className="tpproduct__thumb p-relative text-center">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>
           <Image
             src={image}
             alt="product-img"
@@ -80,7 +80,7 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
           />
         </Link>
         {image && (
-          <Link href={`/product/${product.slug}`} className="tpproduct__thumb-img">
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`} className="tpproduct__thumb-img">
             <Image
               src={image}
               alt="product-img"
@@ -119,12 +119,12 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
           className={`tpproduct__content-weight ${offer_style ? "mb-10" : ""}`}
         >
           {/* Safely access category name and slug for the link */}
-          <Link href={`/shop?category=${category?.slug?.current || ''}`}>
+          <Link href={`/shop/${category?.slug?.current || ''}`}>
             {category?.name || 'Uncategorized'}
           </Link>
         </span>
         <h4 className="tpproduct__title">
-          <Link href={`/product/${product.slug}`}>{title}</Link>
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{title}</Link>
         </h4>
         <div className="tpproduct__rating mb-5">
           <Rating allowFraction size={16} initialValue={averageRating(reviews)} readonly={true} />

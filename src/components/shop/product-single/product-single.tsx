@@ -50,7 +50,7 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
   return (
     <div className={`tpproduct p-relative ${cls ? cls : ""} ${progress ? "tpprogress__hover" : ""}`}>
       <div className="tpproduct__thumb p-relative text-center">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || ''}/${product.slug}`}>
           <Image
             src={image}
             alt="product-img"
@@ -85,12 +85,12 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
         <span
           className={`tpproduct__content-weight ${offer_style ? "mb-10" : ""}`}
         >
-          <Link href={`/shop?category=${category?.slug?.current || ''}`}>
+          <Link href={`/shop/${category?.slug?.current || ''}`}>
             {category?.name || 'Uncategorized'}
           </Link>
         </span>
         <h4 className="tpproduct__title">
-          <Link href={`/product/${product.slug}`}>{title}</Link>
+          <Link href={`/shop/${product.category?.slug?.current || ''}/${product.slug}`}>{title}</Link>
         </h4>
         <div className="tpproduct__rating mb-5">
           <Rating allowFraction size={16} initialValue={averageRating(reviews)} readonly={true} />
