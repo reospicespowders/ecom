@@ -1,6 +1,7 @@
 import { getProductBySlug } from '@/lib/sanity.fetch';
 import ShopDetailsArea from '@/components/shop-details/shop-details-area';
 import { notFound } from 'next/navigation';
+import { revalidateProductPage } from './actions';
 import Header from "@/layouts/header/header";
 import Footer from "@/layouts/footer/footer";
 import { Metadata } from "next";
@@ -32,7 +33,7 @@ export default async function ProductDetailsPage({ params }: Props) {
   return (
     <main>
       <Header />
-      <ShopDetailsArea product={product} />
+      <ShopDetailsArea product={product} revalidate={revalidateProductPage} />
       <Footer />
     </main>
   );

@@ -1,10 +1,11 @@
 export type IReview = {
-  id: number;
-  name: string;
-  email: string;
-  review: string;
+  _id: string;
+  reviewerName: string;
+  reviewerEmail?: string;
+  comment: string;
   rating: number;
-  date: string;
+  approved: boolean;
+  _createdAt: string;
 }
 
 export interface IProductData {

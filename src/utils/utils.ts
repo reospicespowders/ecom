@@ -35,16 +35,25 @@ export function maxPrice(products: IProductData[]): number {
 }
 
 
-export function averageRating(reviews: IReview[]) {
+export const averageRating = (reviews: IReview[]) => {
   if (!reviews || reviews.length === 0) {
-    return 0; // Return 0 if there are no reviews
+    return 0;
   }
 
-  // Calculate the sum of all ratings
-  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  // Filter out null/undefined reviews and reviews that are not approved
+  const approvedReviews = reviews.filter(review => review && review.approved);
 
-  // Calculate the average rating
-  const avgRating = totalRating / reviews.length;
+  if (approvedReviews.length === 0) {
+    return 0; // No approved reviews, so average is 0
+  }
 
-  return Number(avgRating.toFixed(0));
-}
+  const totalRating = approvedReviews.reduce((sum, review) => {
+    // Ensure review and review.rating exist and are numbers before summing
+    const rating = typeof review?.rating === 'number' ? review.rating : 0;
+    return sum + rating;
+  }, 0);
+
+  const avgRating = totalRating / approvedReviews.length;
+
+  return avgRating;
+};

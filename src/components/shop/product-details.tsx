@@ -256,9 +256,9 @@ const ProductDetails = ({ product }: Props) => {
                 <ul>
                   {product.reviews.map((review, index) => (
                     <li key={index} className="mb-20">
-                      <strong>{review.name}</strong> - {new Date(review.date).toLocaleDateString()}
+                      <strong>{review.reviewerName}</strong> - {new Date(review._createdAt).toLocaleDateString()}
                       <Rating size={16} initialValue={review.rating} readonly={true} />
-                      <p>{review.review}</p>
+                      <p>{review.comment}</p>
                     </li>
                   ))}
                 </ul>

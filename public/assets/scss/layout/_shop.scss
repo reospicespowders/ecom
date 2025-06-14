@@ -258,3 +258,62 @@
         margin-top: 5px;
     }
 }
+
+/*---------------------------------
+    Product Details Review Form
+---------------------------------*/
+.product {
+    &__details-comment-form {
+        padding-top: 30px;
+        h4 {
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+    }
+    &__details-comment-input {
+        margin-bottom: 20px;
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--tp-border-1);
+            height: 50px;
+            padding: 0 20px;
+            background: var(--tp-common-white);
+            border-radius: 4px;
+            &:focus {
+                outline: none;
+                border-color: var(--tp-heading-secondary);
+            }
+        }
+        textarea {
+            height: 130px;
+            padding-top: 15px;
+            resize: none;
+        }
+    }
+    &__details-rating {
+        margin-bottom: 20px;
+        .rating-title {
+            font-size: 16px;
+            margin-bottom: 0;
+            margin-right: 15px;
+        }
+        .product-rating {
+            .star-svg {
+                fill: var(--tp-text-1) !important; /* Ensure star color is correct */
+            }
+        }
+    }
+    &__details-comment-btn {
+        button {
+            background-color: var(--tp-heading-secondary);
+            color: var(--tp-common-white);
+            padding: 15px 30px;
+            border-radius: 5px;
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+    }
+}

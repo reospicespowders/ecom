@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Rating } from "react-simple-star-rating";
 import { IProductData } from "@/types/product-d-t";
 import { averageRating, isHot } from "@/utils/utils";
-import ReviewForm from "../form/review-form";
+import ReviewForm from "@/components/product/review-form/ReviewForm";
 import { Video } from "../svg";
 import VideoPopup from "../common/modal/video-popup";
 import ShopDetailsUpper from "./shop-details-upper";
@@ -12,14 +12,16 @@ import Link from "next/link";
 import { PortableText } from '@portabletext/react';
 import { getProductsByCategory } from "@/lib/sanity.fetch";
 import ProductSmSingle from "@/components/product/product-single/product-sm-single";
+import ReviewDisplay from "@/components/product/review-display/ReviewDisplay";
 
 // prop type
 type IProps = {
   product: IProductData;
   navStyle?: boolean;
   topThumb?: boolean;
+  revalidate: (categorySlug: string, productSlug: string) => Promise<void>;
 };
-const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
+const ShopDetailsArea = ({ product,navStyle=false,topThumb=false, revalidate }: IProps) => {
   const [isVideoOpen, setIsVideoOpen] = useState<boolean>(false);
   const {brand,category,gallery,reviews,price,color,quantity,tags,sale_price,description,additionalInfo,productInfoList,videoId} = product;
   const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
@@ -33,6 +35,10 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
     };
     fetchRelatedProducts();
   }, [category?.slug, product._id]);
+
+  const handleReviewSubmitted = () => {
+    revalidate(product.category?.slug.current || 'uncategorized', product.slug);
+  };
 
   return (
     <>
@@ -140,27 +146,12 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                             <div className="tp-product-details-review-avata-thumb">
                               {/* Removed user image as per UI */}
                             </div>
-                            {reviews && reviews.length > 0 ? (
-                              <div className="tp-product-details-review-avata-content">
-                                {reviews.map((review, i) => (
-                                  <div key={i}>
-                                    <h5>{review.name}</h5>
-                                    <div className="tp-product-details-review-avata-rating d-flex align-items-center">
-                                      <Rating allowFraction size={16} initialValue={review.rating} readonly={true} />
-                                      <span> - {new Date(review.date).toLocaleDateString()}</span>
-                                    </div>
-                                    <p>{review.review}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p>No reviews yet. Be the first to review this product!</p>
-                            )}
+                            <ReviewDisplay reviews={reviews || []} />
                           </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="tp-product-details-review-form">
-                            <ReviewForm />
+                            <ReviewForm productId={product._id} onReviewSubmitted={handleReviewSubmitted} />
                           </div>
                         </div>
                       </div>
@@ -226,18 +217,18 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                 {relatedProducts.slice(0, 2).map((item) => (
                   <div key={item._id} className="tp-shop-widget-product d-flex pb-25 mb-20">
                     <div className="tp-shop-widget-product-thumb mr-20">
-                      <Link href={`/product/${item.slug}`}>
+                      <Link href={`/shop/${item.category?.slug.current}/${item.slug}`}>
                         <Image src={item.image} alt={item.title} width={70} height={70} />
                       </Link>
                     </div>
                     <div className="tp-shop-widget-product-content">
                       <span className="tpproduct__product-category">
-                        <Link href={`/product/${item.slug}`}>
-                          {item.category.name}
+                        <Link href={`/shop/${item.category?.slug.current}/${item.slug}`}>
+                          {item.category?.name}
                         </Link>
                       </span>
                       <h4 className="tpsidebar__product-title">
-                        <Link href={`/product/${item.slug}`}>{item.title}</Link>
+                        <Link href={`/shop/${item.category?.slug.current}/${item.slug}`}>{item.title}</Link>
                       </h4>
                       <div className="tp-shop-widget-product-rating-box">
                         <Rating
@@ -247,10 +238,23 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                           readonly={true}
                         />
                       </div>
-
-                      <div className={`tpproduct__price`}>
-                        <span>${item.sale_price ? item.sale_price.toFixed(2) : item.price.toFixed(2)} </span>
-                        {item.sale_price && <del>${item.price.toFixed(2)}</del>}
+                      <div className="tpshop-widget-product-price">
+                        {item.sale_price ? (
+                          <span className="tp-product-price-2">
+                            ${item.sale_price.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="tp-product-price-2">
+                            ${item.price.toFixed(2)}
+                          </span>
+                        )}
+                        {item.sale_price && (
+                          <del>
+                            <span className="tp-product-price-2 old-price">
+                              ${item.price.toFixed(2)}
+                            </span>
+                          </del>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -276,11 +280,11 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
     </section>
 
        {/* video modal start */}
-       {videoId && <VideoPopup
+       <VideoPopup
         isVideoOpen={isVideoOpen}
         setIsVideoOpen={setIsVideoOpen}
-        videoId={videoId}
-      />}
+        videoId={videoId ? videoId : ""}
+      />
       {/* video modal end */}
     </>
   );

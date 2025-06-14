@@ -37,7 +37,16 @@ export async function getProducts() {
     updated_at,
     color,
     offerDate,
-    "slug": slug.current
+    "slug": slug.current,
+    "reviews": reviews[]->{
+      _id,
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      approved,
+      _createdAt
+    }[approved == true]
   }`;
 
   return client.fetch(query);
@@ -75,7 +84,16 @@ export async function getProductBySlug(slug: string) {
     updated_at,
     color,
     offerDate,
-    "slug": slug.current
+    "slug": slug.current,
+    "reviews": reviews[]->{
+      _id,
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      approved,
+      _createdAt
+    }[approved == true]
   }`;
 
   return client.fetch(query, { slug });
@@ -113,7 +131,16 @@ export async function getProductsByCategory(categorySlug: string) {
     updated_at,
     color,
     offerDate,
-    "slug": slug.current
+    "slug": slug.current,
+    "reviews": reviews[]->{
+      _id,
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      approved,
+      _createdAt
+    }[approved == true]
   }`;
 
   return client.fetch(query, { categorySlug });
@@ -151,7 +178,16 @@ export async function getProductsByBrand(brandName: string) {
     updated_at,
     color,
     offerDate,
-    "slug": slug.current
+    "slug": slug.current,
+    "reviews": reviews[]->{
+      _id,
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      approved,
+      _createdAt
+    }[approved == true]
   }`;
 
   return client.fetch(query, { brandName });
@@ -176,4 +212,47 @@ export async function getCategories() {
   }`;
 
   return client.fetch(query);
+}
+
+export async function submitReview(reviewData: {
+  reviewerName: string;
+  reviewerEmail: string;
+  comment: string;
+  rating: number;
+  productId: string;
+}) {
+  const { reviewerName, reviewerEmail, comment, rating, productId } = reviewData;
+
+  const newReview = {
+    _type: 'review',
+    reviewerName,
+    reviewerEmail,
+    comment,
+    rating,
+    product: {
+      _ref: productId,
+      _type: 'reference',
+    },
+    approved: false, // Reviews will be pending approval by default
+  };
+
+  try {
+    const createdReview = await client.create(newReview);
+
+    // Patch the product to add a reference to the new review
+    await client
+      .patch(productId)
+      .setIfMissing({ reviews: [] })
+      .append('reviews', [{
+        _ref: createdReview._id,
+        _type: 'reference',
+        _key: createdReview._id, // Add _key for array stability
+      }])
+      .commit();
+
+    return createdReview;
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    throw error;
+  }
 } 

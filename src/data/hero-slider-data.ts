@@ -61,6 +61,27 @@ export const hero_slider_three_data = [
     title: 'Hot Deals <br/> Natures Healing Touch',
     sm_desc: 'Discover the power of 100% organic spices — <br/> pure, potent, and good for your health.',
     bg_img: '/assets/img/slider/bowl-with-juniper-berries.png',
+  },
+  {
+    id: 3,
+    subtitle: 'Top Picks',
+    title: 'Handpicked Deals <br/> From Nature’s Healing Touch',
+    sm_desc: 'Small batch, big impact — <br/> explore 100% organic spices crafted for your wellbeing.',
+    bg_img: '/assets/img/slider/bowl-with-saffron.png',
+  },
+  {
+    id: 4,
+    subtitle: 'Top Picks',
+    title: 'Limited-Time Finds <br/> Rooted in Nature',
+    sm_desc: 'Every sprinkle tells a story — <br/> shop organic spices made for mindful living.',
+    bg_img: '/assets/img/slider/dried-chives.png',
+  },
+  {
+    id: 5,
+    subtitle: 'Top Picks',
+    title: 'Fresh Drops <br/> Pure. Organic. Essential.',
+    sm_desc: 'Curated with care — <br/> discover spice blends that elevate your kitchen and health.',
+    bg_img: '/assets/img/slider/spice-mix-basket.png',
   }
 ]
 // hero slider five data 

@@ -181,6 +181,14 @@ const productSchema = {
       group: 'details'
     },
     {
+      name: 'reviews',
+      title: 'Reviews',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'review' }] }],
+      group: 'details',
+      readOnly: true,
+    },
+    {
       name: 'productInfoList',
       title: 'Product Information',
       type: 'array',
@@ -221,40 +229,6 @@ const productSchema = {
               title: 'Content',
               type: 'array',
               of: [{ type: 'block' }]
-            }
-          ]
-        }
-      ],
-      group: 'details'
-    },
-    {
-      name: 'reviews',
-      title: 'Reviews',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'rating',
-              title: 'Rating',
-              type: 'number',
-              validation: (Rule: any) => Rule.min(1).max(5)
-            },
-            {
-              name: 'comment',
-              title: 'Comment',
-              type: 'text'
-            },
-            {
-              name: 'author',
-              title: 'Author',
-              type: 'string'
-            },
-            {
-              name: 'date',
-              title: 'Date',
-              type: 'datetime'
             }
           ]
         }
