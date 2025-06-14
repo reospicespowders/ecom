@@ -18,7 +18,7 @@ const CartItem = ({ product }: IProps) => {
       <td className="product-thumbnail">
         <Link href={`/shop-details/${product.id}`}>
           <Image
-            src={product.image.original}
+            src={product.image}
             width={125}
             height={125}
             alt="cart-img"

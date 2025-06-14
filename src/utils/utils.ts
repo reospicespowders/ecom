@@ -1,4 +1,3 @@
-import product_data from "@/data/product-data";
 import { IProductData, IReview } from "@/types/product-d-t";
 
 // calculate discount
@@ -25,8 +24,11 @@ export function isHot(updateDate: Date | string) {
 }
 
 // Get max price
-export function maxPrice(): number {
-  const max_price = [...product_data].reduce((max, product) => {
+export function maxPrice(products: IProductData[]): number {
+  if (!products || products.length === 0) {
+    return 0; // Return 0 if there are no products
+  }
+  const max_price = products.reduce((max, product) => {
     return product.price > max ? product.price : max;
   }, 0);
   return max_price

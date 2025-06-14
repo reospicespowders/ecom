@@ -1,11 +1,29 @@
 'use client';
-import React from 'react';
-import product_data from '@/data/product-data';
+import React, { useEffect, useState } from 'react';
+import { getProducts } from '@/lib/sanity.fetch';
 import ProductSingle from '../product-single/product-single';
 
 
 const AllProductArea = () => {
-  const products = [...product_data];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
   return (
     <>
     <section className="product-area whight-product pt-75 pb-75 fix">
@@ -21,11 +39,17 @@ const AllProductArea = () => {
           </div>
           <div className="tpproduct__arrow double-product p-relative">
             <div className="row">
-              {products.slice(0,12).map((item,i) => (
-                <div className="col-lg-2 col-md-4 col-sm-6 mb-30" key={i}>
-                  <ProductSingle product={item} />
-                </div>
-              ))}
+              {loading ? (
+                <p>Loading products...</p>
+              ) : products.length > 0 ? (
+                products.slice(0,12).map((item,i) => (
+                  <div className="col-lg-2 col-md-4 col-sm-6 mb-30" key={i}>
+                    <ProductSingle product={item} />
+                  </div>
+                ))
+              ) : (
+                <p>No products found.</p>
+              )}
             </div>
           </div>
       </div>

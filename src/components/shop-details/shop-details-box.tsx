@@ -4,6 +4,7 @@ import Image from "next/image";
 import { IProductData } from "@/types/product-d-t";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { add_cart_product, decrement, increment } from "@/redux/features/cart";
+import { discountPercentage } from "@/utils/utils";
 
 // prop type
 type IProps = {
@@ -14,9 +15,14 @@ type IProps = {
 
 const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
   const {gallery,image,price,productInfoList,quantity,color,tags,category} = product;
-  const [activeImg, setActiveImg] = React.useState(image.original);
+  const [activeImg, setActiveImg] = React.useState(image);
   const { orderQuantity } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
+
+  let discount = 0;
+  if (product.sale_price) {
+    discount = discountPercentage(product.price, product.sale_price);
+  }
 
   // handle active image
   const handleActiveImg = (img: string) => {
@@ -38,7 +44,7 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                 ) : (
                   <div className="tpproduct-details__thumb-img mb-10">
                     <Image
-                      src={image.original}
+                      src={image}
                       alt="image"
                       width={500}
                       height={500}
@@ -106,11 +112,19 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
           <div className="col-lg-6">
             <div className="product__details product__sticky">
               <div className="product__details-price-box">
-                <h5 className="product__details-price">${price.toFixed(2)}</h5>
-                {productInfoList && (
+                <h5 className="product__details-price">
+                  ${product.sale_price ? product.sale_price.toFixed(2) : product.price.toFixed(2)}
+                  {product.sale_price && (
+                    <del>${product.price.toFixed(2)}</del>
+                  )}
+                  {discount > 0 && (
+                    <span className="discount-tag">-{discount.toFixed(0)}% Off</span>
+                  )}
+                </h5>
+                {productInfoList && productInfoList.length > 0 && (
                   <ul className="product__details-info-list">
                     {productInfoList.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index}>{item.title}: {item.value}</li>
                     ))}
                   </ul>
                 )}
@@ -118,20 +132,13 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
               <div className="product__color-switch mb-25">
                 <h4 className="product__color-title">Color: Select a color</h4>
                 <div className="tpshop__widget-color-box d-flex align-items-center">
-                  {color &&
+                  {Array.isArray(color) && color.length > 0 &&
                     color.map((clr, i) => (
-                      <div className="form-check" key={i}>
-                        <input
-                          className="form-check-input black-input"
-                          style={{ backgroundColor: clr }}
-                          type="checkbox"
-                          id={`color-${i + 1}`}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`color-${i + 1}`}
-                        ></label>
-                      </div>
+                      <span
+                        key={i}
+                        className="color-swatch"
+                        style={{ backgroundColor: clr }}
+                      ></span>
                     ))}
                 </div>
               </div>
@@ -180,7 +187,7 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                     Availability: <i>{quantity} In stock</i>
                   </li>
                   <li>
-                    Categories: <span>{category.parent}</span>
+                    Categories: <span>{category.name}</span>
                   </li>
                   <li>
                     Tags: <span>{tags.join(", ")}</span>

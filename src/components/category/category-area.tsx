@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
-import category_data from "@/data/category-data";
+import { fetchCategories } from "@/lib/sanity.fetch";
 import { useRouter } from "next/navigation";
 
 // prop type
@@ -15,6 +15,12 @@ type IProps = {
 
 const CategoryArea = ({cls,perView=8,showCount=true}:IProps) => {
   const router = useRouter();
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+  }, []);
+
   // slider setting
   const slider_setting = {
     slidesPerView: perView,
@@ -52,7 +58,7 @@ const CategoryArea = ({cls,perView=8,showCount=true}:IProps) => {
   return (
     <>
       <Swiper {...slider_setting} className={`swiper-container ${cls}`}>
-        {category_data.map((item) => (
+        {categories.map((item) => (
           <SwiperSlide key={item.id}>
             <div className="category__item mb-30">
               <div className="category__thumb fix mb-15">
@@ -71,9 +77,9 @@ const CategoryArea = ({cls,perView=8,showCount=true}:IProps) => {
                 </h5>
                 {showCount && (
                   <span className="category__count">
-                    {item.product_id.length <= 9 && item.product_id.length !== 0
+                    {item.product_id && item.product_id.length <= 9 && item.product_id.length !== 0
                       ? `0${item.product_id.length}`
-                      : `${item.product_id.length}`}{" "}
+                      : `${item.product_id ? item.product_id.length : 0}`} {" "}
                     items
                   </span>
                 )}

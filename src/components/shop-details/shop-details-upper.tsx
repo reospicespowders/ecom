@@ -2,6 +2,8 @@
 import React from "react";
 import ShopDetailsBox from "./shop-details-box";
 import { IProductData } from "@/types/product-d-t";
+import { Rating } from "react-simple-star-rating";
+import { averageRating } from "@/utils/utils";
 
 // prop type
 type IProps = {
@@ -20,12 +22,13 @@ const ShopDetailsUpper = ({ product, navStyle, topThumb }: IProps) => {
             Brands: <a href="#">{product.brand}</a>
           </li>
           <li>
-            <i className="icon-star_outline1"></i>
-            <i className="icon-star_outline1"></i>
-            <i className="icon-star_outline1"></i>
-            <i className="icon-star_outline1"></i>
-            <i className="icon-star_outline1"></i>
-            <b>{product.reviews.length} Reviews</b>
+            <Rating
+              allowFraction
+              size={16}
+              initialValue={averageRating(product.reviews)}
+              readonly={true}
+            />
+            <b>{product.reviews?.length || 0} Reviews</b>
           </li>
           <li>
             SKU: <span>{product.sku}</span>

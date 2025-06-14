@@ -46,7 +46,7 @@ const CompareArea = () => {
                       {compare_products.map((item, index) => (
                         <td key={index}>
                           <div className="tp-compare-thumb">
-                            <Image src={item.image.original} alt="" width={200} height={200} style={{height:'auto'}} />
+                            <Image src={item.image} alt="" width={200} height={200} style={{height:'auto'}} />
                             <h4 className="tp-compare-product-title">
                               <a href="#" dangerouslySetInnerHTML={{ __html: item.title }} />
                             </h4>

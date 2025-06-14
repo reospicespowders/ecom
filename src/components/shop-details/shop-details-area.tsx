@@ -1,15 +1,17 @@
 "use client";
-import React,{useState} from "react";
+import React,{useState, useEffect} from "react";
 import Image from "next/image";
 import { Rating } from "react-simple-star-rating";
 import { IProductData } from "@/types/product-d-t";
-import product_data from "@/data/product-data";
 import { averageRating, isHot } from "@/utils/utils";
 import ReviewForm from "../form/review-form";
 import { Video } from "../svg";
 import VideoPopup from "../common/modal/video-popup";
 import ShopDetailsUpper from "./shop-details-upper";
 import Link from "next/link";
+import { PortableText } from '@portabletext/react';
+import { getProductsByCategory } from "@/lib/sanity.fetch";
+import ProductSmSingle from "@/components/product/product-single/product-sm-single";
 
 // prop type
 type IProps = {
@@ -20,21 +22,32 @@ type IProps = {
 const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
   const [isVideoOpen, setIsVideoOpen] = useState<boolean>(false);
   const {brand,category,gallery,reviews,price,color,quantity,tags,sale_price,description,additionalInfo,productInfoList,videoId} = product;
-  const recent_products = [...product_data].slice(0, 2);
+  const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
+
+  useEffect(() => {
+    const fetchRelatedProducts = async () => {
+      if (category?.slug?.current) {
+        const products = await getProductsByCategory(category.slug.current);
+        setRelatedProducts(products.filter((p: IProductData) => p._id !== product._id));
+      }
+    };
+    fetchRelatedProducts();
+  }, [category?.slug, product._id]);
+
   return (
     <>
     <section className="shopdetails-area grey-bg pb-50">
       <div className="container">
         <div className="row">
-          <div className="col-lg-10 col-md-12">
-            <div className="tpdetails__area mr-60 pb-30">
+          <div className="col-lg-9 col-md-12">
+            <div className="tpdetails__area pb-30">
               {/* shop details upper */}
               <ShopDetailsUpper product={product} navStyle={navStyle} topThumb={topThumb}/>
               {/* shop details upper */}
-              <div className="tpdescription__box">
-                <div className="tpdescription__box-center d-flex align-items-center justify-content-center">
+              <div className="tp-product-details-tab-area mb-45">
+                <div className="tp-product-details-tab-nav">
                   <nav>
-                    <div className="nav nav-tabs" id="nav-tab" role="tablist">
+                    <div className="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
                       <button
                         className="nav-link active"
                         id="nav-description-tab"
@@ -44,35 +57,32 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                         role="tab"
                         aria-controls="nav-description"
                         aria-selected="true"
-                        tabIndex={-1}
                       >
-                        Product Description
+                        Description
                       </button>
                       <button
                         className="nav-link"
-                        id="nav-info-tab"
+                        id="nav-additional-tab"
                         data-bs-toggle="tab"
-                        data-bs-target="#nav-information"
+                        data-bs-target="#nav-additional"
                         type="button"
                         role="tab"
-                        aria-controls="nav-information"
+                        aria-controls="nav-additional"
                         aria-selected="false"
-                        tabIndex={-1}
                       >
-                        ADDITIONAL INFORMATION
+                        Additional information
                       </button>
                       <button
                         className="nav-link"
-                        id="nav-review-tab"
+                        id="nav-reviews-tab"
                         data-bs-toggle="tab"
-                        data-bs-target="#nav-review"
+                        data-bs-target="#nav-reviews"
                         type="button"
                         role="tab"
-                        aria-controls="nav-review"
+                        aria-controls="nav-reviews"
                         aria-selected="false"
-                        tabIndex={-1}
                       >
-                        Reviews ({reviews.length})
+                        Reviews ({reviews?.length || 0})
                       </button>
                     </div>
                   </nav>
@@ -83,11 +93,9 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                     id="nav-description"
                     role="tabpanel"
                     aria-labelledby="nav-description-tab"
-                    tabIndex={0}
                   >
-                    <div className="tpdescription__video">
-                      <h5 className="tpdescription__product-title">PRODUCT DETAILS</h5>
-                      <p>{description}</p>
+                    <div className="tp-product-details-desc-wrapper mt-25">
+                      {description && <PortableText value={description} />}
                       {videoId && 
                         <div className="tpdescription__video-wrapper p-relative mt-30 mb-35 w-img">
                           <Image src="/assets/img/product/product-video1.jpg" width={1036} height={302} alt="" style={{height: "auto"}}/>
@@ -102,94 +110,59 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
                       }
                     </div>
                   </div>
-
                   <div
                     className="tab-pane fade"
-                    id="nav-information"
+                    id="nav-additional"
                     role="tabpanel"
-                    aria-labelledby="nav-info-tab"
-                    tabIndex={0}
+                    aria-labelledby="nav-additional-tab"
                   >
-                    <div className="tpdescription__content">
-                      <p>
-                        Designed by Puik in 1949 as one of the first models
-                        created especially for Carl Hansen & Son, and produced
-                        since 1950. The last of a series of chairs wegner
-                        designed based on inspiration from antique chinese
-                        armchairs. Excepteur sint occaecat cupidatat non
-                        proident, sunt in culpa qui officia eserunt mollit anim
-                        id est laborum. Sed ut perspiciatis unde omnis iste
-                        natus error sit voluptatem accusantium doloremque
-                        laudantium, totam rem aperiam, aque ipsa quae ab illo
-                        inventore veritatis et quasi architecto beatae vitae
-                        dicta sunt explicabo.{" "}
-                      </p>
-                    </div>
-                    <div className="tpdescription__product-wrapper mt-30 mb-30 d-flex justify-content-between align-items-center">
-                      <div className="tpdescription__product-info">
-                        <h5 className="tpdescription__product-title">
-                          PRODUCT DETAILS
-                        </h5>
-                        {additionalInfo && 
-                          <ul className="tpdescription__product-info">
-                            {additionalInfo.map((info, index) => (
-                              <li key={index}>{info.key}: {info.value}</li>
-                            ))}
-                          </ul>
-                         }
-                      </div>
+                    <div className="tp-product-details-additional-info pt-25">
+                      {additionalInfo && <PortableText value={additionalInfo} />}
+                      {productInfoList && productInfoList.length > 0 && (
+                        <ul className="tpdescription__product-info mt-20">
+                          {productInfoList.map((info, index) => (
+                            <li key={index}>{info.title}: {info.value}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
-
                   <div
                     className="tab-pane fade"
-                    id="nav-review"
+                    id="nav-reviews"
                     role="tabpanel"
-                    aria-labelledby="nav-review-tab"
-                    tabIndex={0}
+                    aria-labelledby="nav-reviews-tab"
                   >
-                    <div className="tpreview__wrapper">
-                      <h4 className="tpreview__wrapper-title">
-                        {reviews.length} review for Cheap and delicious fresh chicken
-                      </h4>
-                      {reviews.map((review, index) => (
-                        <div key={index} className="tpreview__comment">
-                          <div className="tpreview__comment-img mr-20">
-                            <Image
-                              src={review.user}
-                              alt="user"
-                              width={70}
-                              height={70}
-                            />
-                          </div>
-                          <div className="tpreview__comment-text">
-                            <div className="tpreview__comment-autor-info d-flex align-items-center justify-content-between">
-                              <div className="tpreview__comment-author">
-                                <span>admin</span>
-                              </div>
-                              <div className="tpreview__comment-star">
-                                <Rating
-                                  allowFraction
-                                  size={16}
-                                  initialValue={review.rating}
-                                  readonly={true}
-                                />
-                              </div>
+                    <div className="tp-product-details-review-wrapper pt-25">
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <div className="tp-product-details-review-avata">
+                            <div className="tp-product-details-review-avata-thumb">
+                              {/* Removed user image as per UI */}
                             </div>
-                            <span className="date mb-20">
-                              --{review.date}:{" "}
-                            </span>
-                            <p>{review.comment}</p>
+                            {reviews && reviews.length > 0 ? (
+                              <div className="tp-product-details-review-avata-content">
+                                {reviews.map((review, i) => (
+                                  <div key={i}>
+                                    <h5>{review.name}</h5>
+                                    <div className="tp-product-details-review-avata-rating d-flex align-items-center">
+                                      <Rating allowFraction size={16} initialValue={review.rating} readonly={true} />
+                                      <span> - {new Date(review.date).toLocaleDateString()}</span>
+                                    </div>
+                                    <p>{review.review}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p>No reviews yet. Be the first to review this product!</p>
+                            )}
                           </div>
                         </div>
-                      ))}
-                      <div className="tpreview__form">
-                        <h4 className="tpreview__form-title mb-25">
-                          Add a review{" "}
-                        </h4>
-                        {/* review form */}
-                        <ReviewForm />
-                        {/* review form */}
+                        <div className="col-lg-6">
+                          <div className="tp-product-details-review-form">
+                            <ReviewForm />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -197,8 +170,8 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
               </div>
             </div>
           </div>
-          <div className="col-lg-2 col-md-12">
-            <div className="tpsidebar pb-30">
+          <div className="col-lg-3 col-md-12">
+            <div className="tpsidebar pb-30" style={{ marginLeft: '0', width: '100%', paddingLeft: '20px', paddingRight: '20px' }}>
               <div className="tpsidebar__warning mb-30">
                 <ul>
                   <li>
@@ -250,42 +223,34 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
               </div>
               <div className="tpsidebar__product">
                 <h4 className="tpsidebar__title mb-15">Recent Products</h4>
-                {recent_products.map((product) => (
-                  <div key={product.id} className="tpsidebar__product-item">
-                    <div className="tpsidebar__product-thumb p-relative">
-                      <Image
-                        src={product.image.original}
-                        alt="product-img"
-                        width={210}
-                        height={210}
-                      />
-                      <div className="tpsidebar__info bage">
-                       {isHot(product.updated_at) && (
-                          <span className="tpproduct__info-hot bage__hot">HOT</span>
-                        )}
-                      </div>
+                {relatedProducts.slice(0, 2).map((item) => (
+                  <div key={item._id} className="tp-shop-widget-product d-flex pb-25 mb-20">
+                    <div className="tp-shop-widget-product-thumb mr-20">
+                      <Link href={`/product/${item.slug}`}>
+                        <Image src={item.image} alt={item.title} width={70} height={70} />
+                      </Link>
                     </div>
-                    <div className="tpsidebar__product-content">
+                    <div className="tp-shop-widget-product-content">
                       <span className="tpproduct__product-category">
-                        <Link href={`/shop-details/${product.id}`}>
-                          {product.category.parent}
+                        <Link href={`/product/${item.slug}`}>
+                          {item.category.name}
                         </Link>
                       </span>
                       <h4 className="tpsidebar__product-title">
-                        <Link href={`/shop-details/${product.id}`}>{product.title}</Link>
+                        <Link href={`/product/${item.slug}`}>{item.title}</Link>
                       </h4>
-                      <div className="tpproduct__rating mb-5">
+                      <div className="tp-shop-widget-product-rating-box">
                         <Rating
                           allowFraction
                           size={16}
-                          initialValue={averageRating(reviews)}
+                          initialValue={averageRating(item.reviews)}
                           readonly={true}
                         />
                       </div>
 
                       <div className={`tpproduct__price`}>
-                        <span>${price.toFixed(2)} </span>
-                        {sale_price && <del>${sale_price.toFixed(2)}</del>}
+                        <span>${item.sale_price ? item.sale_price.toFixed(2) : item.price.toFixed(2)} </span>
+                        {item.sale_price && <del>${item.price.toFixed(2)}</del>}
                       </div>
                     </div>
                   </div>
@@ -294,6 +259,19 @@ const ShopDetailsArea = ({ product,navStyle=false,topThumb=false }: IProps) => {
             </div>
           </div>
         </div>
+        {/* Related Products Section */}
+        {relatedProducts.length > 0 && (
+          <div className="related-products-section mt-50">
+            <h3 className="related-products-title mb-30">Related Products</h3>
+            <div className="row">
+              {relatedProducts.map((p) => (
+                <div className="col-lg-3 col-md-6 col-sm-6 mb-30" key={p._id}>
+                  <ProductSmSingle product={p} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
 

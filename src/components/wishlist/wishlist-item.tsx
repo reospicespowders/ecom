@@ -21,12 +21,12 @@ const WishlistItem = ({ product }: IProps) => {
   return (
     <tr>
       <td className="product-thumbnail">
-        <Link href={`/shop-details/${product.id}`}>
+        <Link href={`/product/${product.slug}`}>
           <Image
-            src={product.image.original}
-            width={125}
-            height={125}
-            alt="wishlist-img"
+            src={product.image}
+            width={100}
+            height={100}
+            alt="product-img"
           />
         </Link>
       </td>

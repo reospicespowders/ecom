@@ -1,9 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { IProductData } from '@/types/product-d-t';
-import product_data from '@/data/product-data';
+import { getProducts } from '@/lib/sanity.fetch';
 import ProductSingle from '../product-single/product-single';
 
 // slider setting 
@@ -44,14 +44,34 @@ const tabs = ['All','Fresh Bakery','Biscuits Snack','Fresh Meat'];
 
 const TopAllProducts = () => {
   const [activeTab, setActiveTab] = React.useState(tabs[0]);
-  const [products, setProducts] = React.useState<IProductData[]>([...product_data]);
+  const [allProducts, setAllProducts] = useState<IProductData[]>([]);
+  const [products, setProducts] = React.useState<IProductData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setAllProducts(fetchedProducts);
+        setProducts(fetchedProducts); // Initialize with all products
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setAllProducts([]);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
 
   const handleFilter = (tab: string) => {
     setActiveTab(tab);
     if (tab === 'All') {
-      setProducts([...product_data]);
+      setProducts([...allProducts]);
     } else {
-      setProducts([...product_data].filter((p) => p.category.parent.toLowerCase() === tab.toLowerCase()));
+      setProducts([...allProducts].filter((p) => p.category.name.toLowerCase() === tab.toLowerCase()));
     }
   }
   return (
@@ -88,13 +108,19 @@ const TopAllProducts = () => {
                 <div className="tpnavtab__area pb-40">
                    <div className="tab-content">
                          <div className="tpproduct__arrow p-relative">
-                            <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-3 tpslider-bottom p-relative tpproduct-priority">
-                              {products.map((product, index) => (
-                                  <SwiperSlide key={index}>
-                                     <ProductSingle product={product} />
-                                  </SwiperSlide>
-                              ))}
-                            </Swiper>
+                            {loading ? (
+                              <p>Loading products...</p>
+                            ) : products.length > 0 ? (
+                              <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-3 tpslider-bottom p-relative tpproduct-priority">
+                                {products.map((product, index) => (
+                                    <SwiperSlide key={index}>
+                                       <ProductSingle product={product} />
+                                    </SwiperSlide>
+                                ))}
+                              </Swiper>
+                            ) : (
+                              <p>No products found for this filter.</p>
+                            )}
                             <div className="tpproduct-btn">
                                <div className="tpprduct-arrow tpproduct-btn__prv tpproduct-arrow-left-2"><a href="#"><i className="icon-chevron-left"></i></a></div>
                                <div className="tpprduct-arrow tpproduct-btn__nxt tpproduct-arrow-right-2"><a href="#"><i className="icon-chevron-right"></i></a></div>

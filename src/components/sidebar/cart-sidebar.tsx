@@ -47,7 +47,7 @@ const CartSidebar = ({isCartSidebarOpen,setIsCartSidebarOpen}:IProps) => {
                       <div className="tpcart__item">
                         <div className="tpcart__img">
                           <Image
-                            src={item.image.original}
+                            src={item.image}
                             alt="cart-img"
                             width={70}
                             height={70}

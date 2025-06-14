@@ -1,13 +1,39 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { set_price_value } from "@/redux/features/filter";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import InputRange from "@/components/ui/input-range";
 import { maxPrice } from "@/utils/utils";
+import { getProducts } from "@/lib/sanity.fetch";
+import { IProductData } from "@/types/product-d-t";
 
 const PriceFilter = () => {
   const { priceValue } = useAppSelector((state) => state.filter);
   const dispatch = useAppDispatch();
+  const [allProducts, setAllProducts] = useState<IProductData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [maxPriceValue, setMaxPriceValue] = useState(0);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const products = await getProducts();
+        setAllProducts(products);
+        setMaxPriceValue(maxPrice(products));
+        dispatch(set_price_value([0, maxPrice(products)])); // Initialize price range with fetched max price
+      } catch (error) {
+        console.error("Failed to fetch products for price filter:", error);
+        setAllProducts([]);
+        setMaxPriceValue(0);
+        dispatch(set_price_value([0, 0]));
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [dispatch]);
+
   // handleChanges
   const handleChanges = (val: number[]) => {
     dispatch(set_price_value(val));
@@ -19,13 +45,17 @@ const PriceFilter = () => {
         <div className="productsidebar__head"></div>
         <div className="productsidebar__range">
           <div id="slider-range">
-          <InputRange
-              MAX={maxPrice()}
+          {loading ? (
+            <p>Loading price range...</p>
+          ) : (
+            <InputRange
+              MAX={maxPriceValue}
               MIN={0}
               STEP={1}
               values={priceValue}
               handleChanges={handleChanges}
             />
+          )}
           </div>
           <div className="price-filter mt-10">
             <span>${priceValue[0]} - ${priceValue[1]}</span>

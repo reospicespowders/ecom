@@ -19,18 +19,18 @@ const ProductSmSingle = ({ product }: IProps) => {
   return (
     <div className="tpbrandproduct__item d-flex mb-20">
       <div className="tpbrandproduct__img p-relative">
-        <Image src={product.image.original} alt="product-img" width={100} height={100} />
+        <Image src={product.image} alt="product-img" width={100} height={100} />
         <div className="tpproduct__info bage tpbrandproduct__bage">
           {discount > 0 && (
             <span className="tpproduct__info-discount bage__discount">
-              -{discount.toFixed(0)}%
+              {discount.toFixed(0)}% Off
             </span>
           )}
         </div>
       </div>
       <div className="tpbrandproduct__contact">
         <span className="tpbrandproduct__product-title">
-          <Link href={`/shop-details/${product.id}`}>{product.title}</Link>
+          <Link href={`/product/${product.slug}`}>{product.title}</Link>
         </span>
         <div className="tpproduct__rating mb-5">
          <Rating allowFraction size={16} initialValue={averageRating(product.reviews)} readonly={true} />

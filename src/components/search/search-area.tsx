@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import product_data from '@/data/product-data';
+import { getProducts } from '@/lib/sanity.fetch';
 import { IProductData } from '@/types/product-d-t';
 import { FourColDots, ListDots, ThreeColDots } from '../svg';
 import usePagination from '@/hooks/use-pagination';
@@ -19,9 +19,8 @@ const col_tabs = [
 
 
 const SearchArea = () => {
-  const [productItems, setProductItems] = useState<IProductData[]>([
-    ...product_data,
-  ]);
+  const [productItems, setProductItems] = useState<IProductData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(col_tabs[0].title);
   const pagination_per_page = activeTab === "four-col" ? 12 : 9;
   const {currentItems,handlePageClick,pageCount} = usePagination<IProductData>(productItems, pagination_per_page);
@@ -36,7 +35,7 @@ const SearchArea = () => {
 
   const categoryMatch = (item: IProductData) => {
     return (
-      !category || item.category.parent.split(" ").join("-").toLowerCase().includes(category)
+      !category || item.category.name.split(" ").join("-").toLowerCase().includes(category)
     );
   };
 
@@ -47,11 +46,25 @@ const SearchArea = () => {
   };
 
   useEffect(() => {
-    setProductItems(
-      product_data.filter((item) => categoryMatch(item) && titleMatch(item))
-    );
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const products = await getProducts();
+        setProductItems(
+          products.filter(
+            (item: IProductData) => categoryMatch(item) && titleMatch(item)
+          )
+        );
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setProductItems([]); // Set to empty array on error
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category,searchText]);
+  }, [category, searchText]);
 
   const handleSorting = (item: { value: string; label: string }) => {
     if (item.value === "new") {

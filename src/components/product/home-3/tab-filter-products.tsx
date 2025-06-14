@@ -1,9 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { IProductData } from '@/types/product-d-t';
-import product_data from '@/data/product-data';
+import { getProducts } from '@/lib/sanity.fetch';
 import ProductSingle from '../product-single/product-single';
 import Link from 'next/link';
 
@@ -45,17 +45,37 @@ const tabs = ['New Arrivals','Features','Best Rate'];
 
 const TabFilterProducts = () => {
   const [activeTab, setActiveTab] = React.useState(tabs[0]);
-  const [products, setProducts] = React.useState<IProductData[]>([...product_data]);
+  const [allProducts, setAllProducts] = useState<IProductData[]>([]);
+  const [products, setProducts] = React.useState<IProductData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setAllProducts(fetchedProducts);
+        setProducts(fetchedProducts.slice(-10)); // Initialize with New Arrivals
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setAllProducts([]);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
 
   const handleFilter = (tab: string) => {
     setActiveTab(tab);
     if (tab === 'New Arrivals') {
-      setProducts([...product_data].slice(-10));
+      setProducts([...allProducts].slice(-10));
     } else if (tab === 'Features') {
-      setProducts([...product_data].slice(0, 10));
+      setProducts([...allProducts].slice(0, 10));
     }
     else {
-      setProducts([...product_data].filter((p) => p.sale_price!  > 0).reverse());
+      setProducts([...allProducts].filter((p) => p.sale_price!  > 0).reverse());
     }
   }
   return (
@@ -94,13 +114,19 @@ const TabFilterProducts = () => {
                         <div className="tab-content" id="nav-tabContent-tp">
                           <div>
                               <div className="tpproduct__arrow p-relative">
-                                <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative tpproduct-priority">
-                                  {products.map((product,index) => (
-                                      <SwiperSlide key={index}>
-                                          <ProductSingle product={product} />
-                                      </SwiperSlide>
-                                  ))}
-                                </Swiper>
+                                {loading ? (
+                                  <p>Loading products...</p>
+                                ) : products.length > 0 ? (
+                                  <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative tpproduct-priority">
+                                    {products.map((product,index) => (
+                                        <SwiperSlide key={index}>
+                                            <ProductSingle product={product} />
+                                        </SwiperSlide>
+                                    ))}
+                                  </Swiper>
+                                ) : (
+                                  <p>No products found for this filter.</p>
+                                )}
                                 <div className="tpproduct-btn">
                                     <div className="tpprduct-arrow tpproduct-btn__prv tpproduct-arrow-left"><a href="#"><i className="icon-chevron-left"></i></a></div>
                                     <div className="tpprduct-arrow tpproduct-btn__nxt tpproduct-arrow-right"><a href="#"><i className="icon-chevron-right"></i></a></div>

@@ -2,7 +2,6 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
-import product_data from "@/data/product-data";
 import ProductSingle from "./product-single/product-single";
 
 // slider setting
@@ -44,9 +43,7 @@ type IProps = {
 };
 
 const RelatedProducts = ({ category }: IProps) => {
-  const related_products = [...product_data].filter(
-    (p) => p.category.parent.toLowerCase() === category.toLowerCase()
-  );
+  const related_products: any[] = [];
   return (
     <section className="product-area whight-product pt-75 pb-80">
       <div className="container">

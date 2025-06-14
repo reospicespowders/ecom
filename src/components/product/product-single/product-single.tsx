@@ -11,12 +11,7 @@ import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
 import { add_cart_product } from "@/redux/features/cart";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
-
-// image style
-const imgStyle = {
-  width: "100%",
-  height: "100%",
-};
+import { PortableText } from '@portabletext/react'; // Ensure this import is present if not already there
 
 // prop type
 type IProps = {
@@ -28,7 +23,7 @@ type IProps = {
 };
 
 const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) => {
-  const {image,price,sale_price,title,updated_at,quantity,sold,category,offerDate,reviews} = product || {};
+  const {image,price,sale_price,title,updated_at,quantity,sold,category,offerDate,reviews,description,additionalInfo} = product || {};
 
   let discount = 0;
   if (sale_price) {
@@ -42,6 +37,13 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
 
+  // State for active tab in product details
+  const [activeTab, setActiveTab] = useState('description');
+  // State for main image in gallery
+  const [mainImage, setMainImage] = useState(product.image);
+  // State for quantity
+  const [quantityCount, setQuantityCount] = useState(product.orderQuantity || 1); // Declaring quantity state
+
   useEffect(() => {
     setIsItemAddToCart(cart_products.some((i) => i.id === product.id));
     setIsWishlistAdd(wishlist.some((i) => i.id === product.id));
@@ -53,28 +55,38 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
     dispatch(handleOpenModal())
   }
 
+  const handleQuantityChange = (value: number) => {
+    if (value >= 1 && value <= product.quantity) {
+      setQuantityCount(value); // Using setQuantityCount here
+    }
+  };
+
+  const handleAddToCart = () => {
+    dispatch(add_cart_product({ ...product, orderQuantity: quantityCount })); // Using quantityCount here
+  };
+
   return (
     <div
       className={`tpproduct p-relative ${cls ? cls : ""} ${progress ? "tpprogress__hover" : ""}`}
     >
       <div className="tpproduct__thumb p-relative text-center">
-        <Link href={`/shop-details/${product.id}`}>
+        <Link href={`/product/${product.slug}`}>
           <Image
-            src={image.original}
+            src={image}
             alt="product-img"
             width={217}
             height={217}
-            style={imgStyle}
+            style={{ width: "100%", height: "auto" }}
           />
         </Link>
-        {image.thumbnail && (
-          <Link href={`/shop-details/${product.id}`} className="tpproduct__thumb-img">
+        {image && (
+          <Link href={`/product/${product.slug}`} className="tpproduct__thumb-img">
             <Image
-              src={image.thumbnail}
+              src={image}
               alt="product-img"
               width={217}
               height={217}
-              style={imgStyle}
+              style={{ width: "100%", height: "auto" }}
             />
           </Link>
         )}
@@ -106,11 +118,13 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
         <span
           className={`tpproduct__content-weight ${offer_style ? "mb-10" : ""}`}
         >
-          <Link href={`/shop-details/${product.id}`}>{category.parent}</Link>,
-          <Link href={`/shop-details/${product.id}`}>{category.child}</Link>
+          {/* Safely access category name and slug for the link */}
+          <Link href={`/shop?category=${category?.slug?.current || ''}`}>
+            {category?.name || 'Uncategorized'}
+          </Link>
         </span>
         <h4 className="tpproduct__title">
-          <Link href={`/shop-details/${product.id}`}>{title}</Link>
+          <Link href={`/product/${product.slug}`}>{title}</Link>
         </h4>
         <div className="tpproduct__rating mb-5">
           <Rating allowFraction size={16} initialValue={averageRating(reviews)} readonly={true} />
@@ -125,7 +139,7 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
           <>
             <div className="deals-label">Harry Up! Offer end in:</div>
             <CountdownTimer
-              expiryTimestamp={new Date(offerDate?.endDate!)}
+              expiryTimestamp={new Date((offerDate as any)?.end!)}
               cls="tpcoundown__themebg"
             />
           </>
@@ -139,10 +153,7 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
               ></div>
             </div>
             <span>
-              Sold:{" "}
-              <b>
-                {sold}/{quantity}
-              </b>
+              Sold: <b>{sold}/{quantity}</b>
             </span>
           </div>
         )}
@@ -155,7 +166,7 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
             </Link>
           ) : (
             <a
-              onClick={() => dispatch(add_cart_product(product))}
+              onClick={() => dispatch(add_cart_product({ ...product, orderQuantity: quantityCount }))}
               className="tp-btn-2 pointer"
             >
               Add to Cart
@@ -164,8 +175,8 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
         </div>
         <div className="tpproduct__descrip">
           <ul>
-            <li>Category: Organic</li>
-            <li>MFG: August 4.2021</li>
+            <li>Category: {category?.name || 'N/A'}</li>
+            <li>MFG: {updated_at ? new Date(updated_at).toLocaleDateString() : 'N/A'}</li>
             <li>LIFE: 60 days</li>
           </ul>
         </div>

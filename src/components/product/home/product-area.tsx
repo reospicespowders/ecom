@@ -1,8 +1,8 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
-import product_data from '@/data/product-data';
+import { getProducts } from '@/lib/sanity.fetch';
 import ProductSingle from '../product-single/product-single';
 
 // slider setting
@@ -39,7 +39,25 @@ const slider_setting = {
 }
 
 const ProductArea = () => {
-   const products = [...product_data].slice(-10);
+   const [products, setProducts] = useState<any[]>([]);
+   const [loading, setLoading] = useState(true);
+
+   useEffect(() => {
+     async function fetchProducts() {
+       setLoading(true);
+       try {
+         const fetchedProducts = await getProducts();
+         setProducts(fetchedProducts.slice(-10)); // Still applying slice as per original logic
+       } catch (error) {
+         console.error("Failed to fetch products:", error);
+         setProducts([]);
+       } finally {
+         setLoading(false);
+       }
+     }
+     fetchProducts();
+   }, []);
+
   return (
     <>
      <section className="product-area grey-bg pb-0">
@@ -54,13 +72,19 @@ const ProductArea = () => {
                   </div>
                </div>
                <div className="tpproduct__arrow p-relative">
-                  <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active tpslider-bottom p-relative">
-                     {products.map((product, index) => (
-                        <SwiperSlide key={index}>
-                           <ProductSingle product={product} />
-                        </SwiperSlide>
-                     ))}
-                  </Swiper>
+                  {loading ? (
+                    <p>Loading products...</p>
+                  ) : products.length > 0 ? (
+                    <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active tpslider-bottom p-relative">
+                       {products.map((product, index) => (
+                          <SwiperSlide key={index}>
+                             <ProductSingle product={product} />
+                          </SwiperSlide>
+                       ))}
+                    </Swiper>
+                  ) : (
+                    <p>No products found.</p>
+                  )}
                   <div className="tpproduct-btn">
                      <div className="tpprduct-arrow tpproduct-btn__prv"><a href="#"><i className="icon-chevron-left"></i></a></div>
                      <div className="tpprduct-arrow tpproduct-btn__nxt"><a href="#"><i className="icon-chevron-right"></i></a></div>

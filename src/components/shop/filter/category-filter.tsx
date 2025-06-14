@@ -1,11 +1,15 @@
 'use client';
-import React from "react";
-import category_data from "@/data/category-data";
+import React, { useEffect, useState } from "react";
+import { fetchCategories } from "@/lib/sanity.fetch";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { add_category, add_sub_category } from "@/redux/features/filter";
 
 const CategoryFilter = () => {
-  const categories = [...category_data];
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+  }, []);
 
   const {category:parentCategory,subCategory} = useAppSelector((state) => state.filter);
   const dispatch = useAppDispatch()
@@ -27,11 +31,11 @@ const CategoryFilter = () => {
             className="form-check-input"
             type="checkbox"
             id={`flexCheckDefault-${i+1}`}
-            onChange={() => handleParentCategory(category.parent)}
-            checked={category.parent === parentCategory ? true : false}
+            onChange={() => handleParentCategory(category.parent ? category.parent.name : category.name)}
+            checked={category.parent ? category.parent.name === parentCategory : category.name === parentCategory}
           />
           <label className="form-check-label" htmlFor={`flexCheckDefault-${i+1}`}>
-            {category.parent} ({category.product_id.length})
+            {category.parent ? category.parent.name : category.name} ({category.product_id ? category.product_id.length : 0})
           </label>
         </div>
       ))}

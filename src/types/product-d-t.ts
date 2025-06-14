@@ -1,39 +1,37 @@
 export type IReview = {
   id: number;
   name: string;
-  comment: string;
+  email: string;
+  review: string;
   rating: number;
-  user: string;
   date: string;
 }
 
 export interface IProductData {
+  _id: string;
   id: number;
   sku: string;
   title: string;
   price: number;
   sale_price?: number;
-  image: {
-    id: number;
-    original: string;
-    thumbnail?: string;
-  };
+  image: string;
   category: {
-    parent: string;
-    child: string;
+    _id: string;
+    id: number;
+    name: string;
+    slug: {
+      current: string;
+    };
   };
   quantity: number;
   unit: string;
-  gallery?: string[];
-  description: string;
-  videoId: string | null;
-  orderQuantity?:number;
-  productInfoList?:string[],
-  additionalInfo?: {
-    key: string;
-    value: string;
-  }[],
-  reviews:IReview[];
+  gallery: string[];
+  description: any;
+  videoId?: string;
+  orderQuantity?: number;
+  productInfoList: Array<{ title: string; value: string }>;
+  additionalInfo: any;
+  reviews: IReview[];
   tags: string[];
   status: string;
   brand: string;
@@ -41,8 +39,9 @@ export interface IProductData {
   created_at: string;
   updated_at: string;
   color?: string[];
-  offerDate?:{
-    startDate:string;
-    endDate:string;
-  }
+  offerDate?: {
+    start: string;
+    end: string;
+  };
+  slug: string;
 }

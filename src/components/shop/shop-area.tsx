@@ -42,28 +42,14 @@ const ShopArea = ({category_style=false,shop_right=false}: IProps) => {
           <div className={`col-xl-2 col-lg-12 col-md-12 ${shop_right?"order-2":""}`}>
             <ShopSidebar shop_right={shop_right} />
           </div>
-          <div className="col-xl-10 col-lg-12 col-md-12">
-            <div className={`tpshop__top ${shop_right?"tpshop__sidebar-area mr-60":"ml-60"}`}>
-              {!category_style && (
-                <div
-                  className="tpshop__banner mb-30"
-                  style={{backgroundImage: "url(/assets/img/banner/shop-bg-1.jpg)"}}
-                >
-                  <div className="tpshop__content text-center">
-                    <span>The Salad</span>
-                    <h4 className="tpshop__content-title mb-20">
-                      Fresh & Natural <br />
-                      Healthy Food Special Offer
-                    </h4>
-                    <p>Do not miss the current offers of us!</p>
-                  </div>
-                </div>
-              )}
+          <div className={`col-xl-10 col-lg-12 col-md-12 ${shop_right?"order-1":""}`}>
+            <div className="tpshop__wrapper">
               {category_style && (
-                <div className="tpshop__category">
-                  <CategoryArea cls="inner-category-active" perView={7} showCount={false} />
+                <div className="tpshop__category mb-30">
+                  <CategoryArea cls="inner-category-two" showCount={false} />
                 </div>
               )}
+
               <div className="product__filter-content mb-40">
                 <div className="row align-items-center">
                   <div className="col-sm-4">
@@ -121,14 +107,16 @@ const ShopArea = ({category_style=false,shop_right=false}: IProps) => {
               />
               {/* shop items end */}
 
-              <div className="basic-pagination text-center mt-35">
-                <nav>
-                  <Pagination
-                    handlePageClick={handlePageClick}
-                    pageCount={pageCount}
-                  />
-                </nav>
-              </div>
+              {products.length > 0 && (
+                <div className="basic-pagination text-center mt-35">
+                  <nav>
+                    <Pagination
+                      handlePageClick={handlePageClick}
+                      pageCount={pageCount}
+                    />
+                  </nav>
+                </div>
+              )}
             </div>
           </div>
         </div>

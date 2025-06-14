@@ -1,9 +1,12 @@
 export interface ICategoryData {
+  _id?: string;
   id: number;
   img: string;
   name: string;
-  slug: string;
-  parent: string;
-  children: string[];
-  product_id: number[];
+  slug: {
+    current: string;
+  };
+  parent?: string;
+  children?: ICategoryData[];
+  product_id?: number[];
 }

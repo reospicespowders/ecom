@@ -1,8 +1,8 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
-import product_data from '@/data/product-data';
+import { getProducts } from '@/lib/sanity.fetch';
 import ProductSingle from '../product-single/product-single';
 
 // slider setting
@@ -39,7 +39,25 @@ const slider_setting = {
 }
 
 const DiscountProducts = () => {
-  const products = [...product_data].filter(p => p.sale_price);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts.filter((p: any) => p.sale_price));
+      } catch (error) {
+        console.error("Failed to fetch discount products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
   return (
     <section className="weekly-product-area grey-bg whight-product">
     <div className="container">
@@ -60,13 +78,19 @@ const DiscountProducts = () => {
              <div className="col-lg-12">
                 <div className="tpnavtab__area pb-40">
                    <div className="tpproduct__arrow p-relative">
-                      <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative">
-                        {products.map((product, index) => (
-                           <SwiperSlide key={index}>
-                              <ProductSingle product={product} progress={true} price_space='mb-5' />
-                           </SwiperSlide>
-                        ))}
-                      </Swiper>
+                      {loading ? (
+                        <p>Loading products...</p>
+                      ) : products.length > 0 ? (
+                        <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative">
+                          {products.map((product, index) => (
+                             <SwiperSlide key={index}>
+                                <ProductSingle product={product} progress={true} price_space='mb-5' />
+                             </SwiperSlide>
+                          ))}
+                        </Swiper>
+                      ) : (
+                        <p>No discount products found.</p>
+                      )}
                    </div>
                 </div>
              </div>

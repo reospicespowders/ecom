@@ -1,8 +1,8 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import MobileMenus from "@/layouts/header/mobile-menus";
-import category_data from "@/data/category-data";
+import { fetchCategories } from "@/lib/sanity.fetch";
 import { useRouter } from "next/navigation";
 import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
@@ -13,8 +13,13 @@ type IProps = {
 };
 
 const MobileSidebar = ({ isSidebarOpen, setIsSidebarOpen }: IProps) => {
-  const categories = [...category_data];
+  const [categories, setCategories] = useState<any[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+  }, []);
+
   return (
     <>
       <div className={`tpsideinfo ${isSidebarOpen ? "tp-sidebar-opened" : ""}`}>
