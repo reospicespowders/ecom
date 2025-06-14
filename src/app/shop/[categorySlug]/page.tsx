@@ -31,7 +31,7 @@ export default function CategoryShopPage({ params }: CategoryPageProps) {
 
         {/* shop area start */}
         <Suspense fallback={<div>Loading shop...</div>}>
-          <ShopArea categorySlug={categorySlug} />
+          <ShopArea categorySlug={categorySlug} category_style={true} />
         </Suspense>
         {/* shop area end */}
 

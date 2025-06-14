@@ -40,10 +40,10 @@ const ShopArea = ({ category_style = false, shop_right = false, categorySlug }: 
     <section className="shop-area-start grey-bg pb-200">
       <div className="container">
         <div className={`row ${shop_right ? "row-reverse" : ""}`}>
-          <div className={`col-xl-2 col-lg-12 col-md-12 ${shop_right ? "order-2" : ""}`}>
+          <div className={`col-xl-2 col-lg-3 col-md-4 pe-lg-3 ${shop_right ? "order-2" : ""}`}>
             <ShopSidebar shop_right={shop_right} />
           </div>
-          <div className={`col-xl-10 col-lg-12 col-md-12 ${shop_right ? "order-1" : ""}`}>
+          <div className={`col-xl-10 col-lg-9 col-md-8 ps-xl-4 ${shop_right ? "order-1" : ""}`}>
             <div className="tpshop__wrapper">
               {category_style && (
                 <div className="tpshop__category mb-30">

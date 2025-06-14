@@ -7,7 +7,7 @@
 
 .tpshop {
     &__leftbar {
-        margin-right: -60px;
+        // margin-right: -60px; /* Removed to prevent merging */
         background-color: var(--tp-common-white);
         padding: 25px 30px 18px 30px;
         border-radius: 10px;
@@ -138,7 +138,6 @@
         }
     }
     &__leftbar-area {
-        margin-left: -60px;
         @media #{$lg,$md,$xs} {
             margin-left: 0;
         }

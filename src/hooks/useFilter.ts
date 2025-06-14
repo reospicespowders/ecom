@@ -37,12 +37,14 @@ export function useProductFilter(initialCategorySlug?: string) {
     let currentFilteredData = [...products];
 
     // Filter by category and subCategory
-    currentFilteredData = currentFilteredData.filter((p) =>
-      (category && !subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() :
-        (!category && subCategory) ? p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
-          (category && subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() && p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
-            true
-    );
+    if (!initialCategorySlug) {
+      currentFilteredData = currentFilteredData.filter((p) =>
+        (category && !subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() :
+          (!category && subCategory) ? p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
+            (category && subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() && p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
+              true
+      );
+    }
 
     // Filter by price range
     currentFilteredData = currentFilteredData.filter((p) => p.price >= priceValue[0] && p.price <= priceValue[1]);
