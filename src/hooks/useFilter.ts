@@ -42,7 +42,7 @@ export function useProductFilter(initialCategorySlug?: string) {
         (category && !subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() :
           (!category && subCategory) ? p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
             (category && subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() && p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
-              true
+            true
       );
     }
 
@@ -51,27 +51,27 @@ export function useProductFilter(initialCategorySlug?: string) {
 
     // Filter by colors
     currentFilteredData = currentFilteredData.filter((p) => {
-      if (colors.length > 0 && p.color) {
+        if (colors.length > 0 && p.color) {
         return (Array.isArray(p.color) ? p.color : [p.color]).some((c) => colors.includes(c));
-      }
-      return true;
+        }
+        return true;
     });
 
     // Filter by brand
     currentFilteredData = currentFilteredData.filter((p) => {
-      if (brand) {
+        if (brand) {
         return p.brand?.toLowerCase() === brand.toLowerCase();
-      }
-      return true;
+        }
+        return true;
     });
 
     // Filter by rating
     currentFilteredData = currentFilteredData.filter((p) => {
-      if (ratingValue) {
-        return averageRating(p.reviews) >= ratingValue;
-      }
-      return true;
-    });
+        if (ratingValue) {
+          return averageRating(p.reviews) >= ratingValue;
+        }
+        return true;
+      });
 
     // Filter by search text
     const titleMatch = (item: IProductData) => {

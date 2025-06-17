@@ -21,8 +21,14 @@ const ProductDetails = ({ product }: Props) => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [mainImage, setMainImage] = useState(product.image);
+  const [imgLoading, setImgLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
   const dispatch = useAppDispatch();
+
+  // Helper for blur placeholder (optional: you can generate a static blurDataURL or use a tiny image)
+  const blurDataURL =
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWUiLz48L3N2Zz4=";
 
   useEffect(() => {
     const fetchRelated = async () => {
@@ -56,31 +62,73 @@ const ProductDetails = ({ product }: Props) => {
       <div className="row">
         <div className="col-lg-6">
           <div className="tpproduct__details-thumb-wrapper">
-            <div className="tpproduct__details-main-img mb-30">
-              <Image
-                src={mainImage}
-                alt={product.title}
-                fill
-                style={{ objectFit: 'contain' }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
+            <div
+              className="tpproduct__details-main-img mb-30"
+              style={{ position: 'relative', overflow: 'hidden', width: '100%', paddingTop: '100%' /* 1:1 Aspect Ratio, adjust as needed */ }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                {imgError ? (
+                  <div className="img-fallback" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: '#f3f3f3' }}>
+                    Image not available
+                  </div>
+                ) : (
+                  <Image
+                    src={mainImage}
+                    alt={product.title}
+                    fill
+                    style={{ objectFit: 'contain', transition: 'transform 0.3s', cursor: 'zoom-in' }}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    placeholder="blur"
+                    blurDataURL={blurDataURL}
+                    onLoadingComplete={() => setImgLoading(false)}
+                    onError={() => setImgError(true)}
+                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  />
+                )}
+                {imgLoading && !imgError && (
+                  <div className="img-skeleton-loader" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#f3f3f3', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                    <span className="loader"></span>
+                  </div>
+                )}
+              </div>
             </div>
             {product.gallery && product.gallery.length > 0 && (
-              <div className="tpproduct__details-thumb-nav">
-                {product.gallery.map((imgUrl, index) => (
-                  <div
+              <div className="tpproduct__details-thumb-nav" style={{ display: 'flex', gap: 8 }}>
+                {[product.image, ...product.gallery].map((imgUrl, index) => (
+                  <button
                     key={index}
-                    className={`tpproduct__details-thumb-nav-item ${mainImage === imgUrl ? 'active' : ''}`}
-                    onClick={() => setMainImage(imgUrl)}
+                    className={`tpproduct__details-thumb-nav-item${mainImage === imgUrl ? ' active' : ''}`}
+                    style={{
+                      border: mainImage === imgUrl ? '2px solid #0070f3' : '1px solid #eee',
+                      padding: 2,
+                      borderRadius: 6,
+                      background: '#fff',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      width: 60,
+                      height: 60,
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                    aria-label={`Show image ${index + 1}`}
+                    onClick={() => {
+                      setMainImage(imgUrl);
+                      setImgLoading(true);
+                      setImgError(false);
+                    }}
                   >
                     <Image
                       src={imgUrl}
                       alt={`thumbnail-${index}`}
                       fill
-                      style={{ objectFit: 'contain' }}
-                      sizes="(max-width: 768px) 20vw, (max-width: 1200px) 10vw, 5vw"
+                      style={{ objectFit: 'cover' }}
+                      sizes="60px"
+                      placeholder="blur"
+                      blurDataURL={blurDataURL}
+                      onError={e => (e.currentTarget.style.opacity = '0.3')}
                     />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

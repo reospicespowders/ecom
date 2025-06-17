@@ -68,8 +68,8 @@ export default function RootLayout({
           signInUrl="/login"
           signUpUrl="/login"
           afterSignOutUrl="/"
-        >
-          <Providers>{children}</Providers>
+      >
+        <Providers>{children}</Providers>
         </ClerkProvider>
       </body>
     </html>

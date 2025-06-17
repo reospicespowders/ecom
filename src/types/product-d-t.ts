@@ -22,7 +22,7 @@ export interface IProductData {
     name: string;
     slug: {
       current: string;
-    };
+  };
   };
   quantity: number;
   unit: string;

@@ -35,19 +35,20 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
           <div className="col-lg-6">
             {!navStyle && (
               <div className="tpproduct-details__nab p-relative">
-                {gallery ? (
+                {gallery && gallery.length > 0 ? (
                   gallery.map((item, index) => (
-                    <div className="tpproduct-details__thumb" key={index}>
-                      <Image src={item} alt="image" width={500} height={500} />
+                    <div className="tpproduct-details__thumb" key={index} style={{ position: 'relative', width: '100%', paddingTop: '100%', marginBottom: '15px', overflow: 'hidden' }}>
+                      <Image src={item} alt="image" fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                     </div>
                   ))
                 ) : (
-                  <div className="tpproduct-details__thumb-img mb-10">
+                  <div className="tpproduct-details__thumb-img mb-10" style={{ position: 'relative', width: '100%', paddingTop: '100%', overflow: 'hidden' }}>
                     <Image
                       src={image}
                       alt="image"
-                      width={500}
-                      height={500}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                 )}
