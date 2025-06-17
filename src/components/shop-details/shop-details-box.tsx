@@ -191,7 +191,7 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                     Categories: <span>{category.name}</span>
                   </li>
                   <li>
-                    Tags: <span>{tags.join(", ")}</span>
+                    Tags: <span>{tags && tags.length > 0 ? tags.join(", ") : 'N/A'}</span>
                   </li>
                 </ul>
               </div>
