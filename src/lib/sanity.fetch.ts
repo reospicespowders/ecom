@@ -270,4 +270,19 @@ export async function getBlogByCategoryAndSlug(categorySlug: string, blogSlug: s
     category->{_id, title, slug}
   }`;
   return client.fetch(query, { blogSlug, categorySlug });
+}
+
+export async function getLatestBlogsForHome(limit = 4) {
+  const query = `*[_type == "blog"] | order(publishedAt desc)[0...$limit]{
+    _id,
+    title,
+    slug,
+    excerpt,
+    content,
+    "mainImage": mainImage.asset->url,
+    author,
+    publishedAt,
+    category->{title, slug}
+  }`;
+  return client.fetch(query, { limit });
 } 

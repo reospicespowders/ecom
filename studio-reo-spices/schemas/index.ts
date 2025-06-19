@@ -1,4 +1,6 @@
-import product from './product'
-import category from './category'
+import blog from './blog';
+import blogCategory from './blogCategory';
+import category from './category';
+import product from './product';
 
-export const schemaTypes = [product, category] 
+export default [blog, blogCategory, category, product]; 

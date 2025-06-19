@@ -1,9 +1,11 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import blog_data from "@/data/blog-data";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BlogSingle from "./single/blog-single";
 import Link from "next/link";
+import { getLatestBlogsForHome } from "@/lib/sanity.fetch";
+import { IBlogData } from "@/types/blog-d-t";
 
 // slider setting
 const slider_setting = {
@@ -40,7 +42,30 @@ type IProps = {
 };
 
 const BlogItems = ({style_2=false,bottom_show=true,spacing}: IProps) => {
-  const blogs = blog_data.filter((blog) => blog.blog === "home");
+  const [blogs, setBlogs] = useState<IBlogData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      setLoading(true);
+      const sanityBlogs = await getLatestBlogsForHome(4);
+      // Map Sanity blogs to IBlogData
+      const mapped = sanityBlogs.map((blog: any, idx: number) => ({
+        id: idx + 1, // fallback, ideally use a hash or _id
+        title: blog.title,
+        image: blog.mainImage || "/assets/img/blog/blog-bg-1.jpg", // fallback image
+        author: blog.author || "Admin",
+        category: blog.category?.title || "General",
+        desc: blog.excerpt || "",
+        date: blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase().replace(/,/g, ".") : "",
+        blog: "home",
+      }));
+      setBlogs(mapped);
+      setLoading(false);
+    }
+    fetchBlogs();
+  }, []);
+
   return (
     <>
       <section
@@ -79,16 +104,20 @@ const BlogItems = ({style_2=false,bottom_show=true,spacing}: IProps) => {
               </div>
             </div>
           )}
-          <Swiper
-            {...slider_setting}
-            className="swiper-container tpblog-active"
-          >
-            {blogs.map((blog, index) => (
-              <SwiperSlide key={index}>
-                <BlogSingle blog={blog} bottom_show={bottom_show} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          {loading ? (
+            <div style={{textAlign: "center", padding: 40}}>Loading blogs...</div>
+          ) : (
+            <Swiper
+              {...slider_setting}
+              className="swiper-container tpblog-active"
+            >
+              {blogs.map((blog, index) => (
+                <SwiperSlide key={index}>
+                  <BlogSingle blog={blog} bottom_show={bottom_show} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
         </div>
       </section>
     </>
