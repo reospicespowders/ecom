@@ -24,9 +24,9 @@ const ProductBannerAreaTwo = () => {
       <div className="container">
           <div className="sections__wrapper white-bg pt-20 pl-50 pr-50 pb-30">
             <div className="row">
-              <BannerItem bg="/assets/img/banner/banner-4.jpg" subtitle="Top offers" title="Seafood <br/> Fresh & Tasty" text="Natural, Rich in Nutrition" />
-              <BannerItem bg="/assets/img/banner/banner-5.jpg" subtitle="Weekend Deals" title="vegetable <br/> Best For Family" text="Top Quality Products" />
-              <BannerItem bg="/assets/img/banner/banner-6.jpg" subtitle="Top seller" title="fresh Meat <br/> Fresh & Tasty" text="Limited Time: Online Only!" />
+              <BannerItem bg="/assets/img/banner/spices-banner-1.jpg" subtitle="Top offers" title="Organic Spices <br/> Straight from Nature"  text="Pure taste, rich aroma, zero additives" />
+              <BannerItem bg="/assets/img/banner/spices-banner-2.jpg" subtitle="Weekend Deals" title="Traditional Herbs <br/> Wellness in Every Spoon" text="Ancient remedies made fresh for today" />
+              <BannerItem bg="/assets/img/banner/spices-banner-3.jpg" subtitle="Top seller" title="Best-Selling Blends <br/> Taste the Purity" text="Handpicked spices for mindful living" />
             </div>
           </div>
       </div>

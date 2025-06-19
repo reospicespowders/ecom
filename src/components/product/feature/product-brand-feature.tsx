@@ -5,11 +5,41 @@ import Link from 'next/link';
 import { getProductsByBrand } from '@/lib/sanity.fetch';
 import { IProductData } from '@/types/product-d-t';
 import ProductBrandSingle from '../product-single/product-sm-single';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
 
 const ProductBrandFeature = () => {
   const [brandProducts, setBrandProducts] = useState<IProductData[]>([]);
   const [loading, setLoading] = useState(true);
   const selectedBrand = 'REO Spices and Powders';
+
+  const slider_setting = {
+    slidesPerView: 4,
+    spaceBetween: 20,
+    observer: true,
+    observeParents: true,
+    breakpoints: {
+      '1200': {
+        slidesPerView: 4,
+      },
+      '992': {
+        slidesPerView: 3,
+      },
+      '768': {
+        slidesPerView: 2,
+      },
+      '576': {
+        slidesPerView: 1,
+      },
+      '0': {
+        slidesPerView: 1,
+      },
+    },
+    navigation: {
+      nextEl: '.tpbrandproduct-btn__nxt',
+      prevEl: '.tpbrandproduct-btn__prv',
+    }
+  };
 
   useEffect(() => {
     async function fetchBrandProducts() {
@@ -63,22 +93,24 @@ const ProductBrandFeature = () => {
               </div>
             </div>
             <div className="col-lg-9">
-              <div className="row gx-3">
+              <div className="tpbrandproduct__arrow p-relative">
                 {loading ? (
-                  <div className="col-12 text-center">
-                    <p>Loading products...</p>
-                  </div>
+                  <p>Loading products...</p>
                 ) : brandProducts.length > 0 ? (
-                  brandProducts.slice(0, 6).map((product) => (
-                    <div key={product._id} className="col-xl-4 col-lg-6">
-                      <ProductBrandSingle product={product} />
-                    </div>
-                  ))
+                  <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpbrandproduct-active tpslider-bottom p-relative">
+                    {brandProducts.slice(0, 8).map((product) => (
+                      <SwiperSlide key={product._id}>
+                        <ProductBrandSingle product={product} />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
                 ) : (
-                  <div className="col-12 text-center">
-                    <p>No products found for this brand.</p>
-                  </div>
+                  <p>No products found for this brand.</p>
                 )}
+                <div className="tpbrandproduct-btn">
+                  <div className="tpprduct-arrow tpbrandproduct-btn__prv"><a href="#"><i className="icon-chevron-left"></i></a></div>
+                  <div className="tpprduct-arrow tpbrandproduct-btn__nxt"><a href="#"><i className="icon-chevron-right"></i></a></div>
+                </div>
               </div>
             </div>
           </div>

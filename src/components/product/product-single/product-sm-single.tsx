@@ -17,27 +17,33 @@ const ProductSmSingle = ({ product }: IProps) => {
     discount = discountPercentage(product.price, product.sale_price);
   }
   return (
-    <div className="tpbrandproduct__item d-flex mb-20">
-      <div className="tpbrandproduct__img p-relative">
-        <Image src={product.image} alt="product-img" width={100} height={100} />
-        <div className="tpproduct__info bage tpbrandproduct__bage">
-          {discount > 0 && (
-            <span className="tpproduct__info-discount bage__discount">
-              {discount.toFixed(0)}% Off
-            </span>
-          )}
-        </div>
+    <div className="tpbrandproduct__card card-modern p-relative mb-20">
+      <div className="tpbrandproduct__img-wrap p-relative">
+        <Image 
+          src={product.image} 
+          alt="product-img" 
+          width={160} 
+          height={160} 
+          className="tpbrandproduct__img-modern"
+          style={{ objectFit: 'cover', borderRadius: '12px', width: '100%', height: '160px', background: '#f8f8f8' }}
+        />
+        {discount > 0 && (
+          <span className="tpproduct__info-discount-modern bage__discount">-{discount.toFixed(0)}% Off</span>
+        )}
       </div>
-      <div className="tpbrandproduct__contact">
-        <span className="tpbrandproduct__product-title">
-          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{product.title}</Link>
-        </span>
-        <div className="tpproduct__rating mb-5">
-         <Rating allowFraction size={16} initialValue={averageRating(product.reviews)} readonly={true} />
+      <div className="tpbrandproduct__content-modern">
+        <div className="tpbrandproduct__category-modern">
+          {product.category?.name || 'Uncategorized'}
         </div>
-        <div className="tpproduct__price">
-          <span>${product.sale_price ? product.sale_price : product.price} </span>
-          {product.sale_price && <del>${product.price}</del>}
+        <h4 className="tpbrandproduct__title-modern">
+          <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{product.title}</Link>
+        </h4>
+        <div className="tpbrandproduct__rating-modern mb-5">
+          <Rating allowFraction size={14} initialValue={averageRating(product.reviews)} readonly={true} />
+        </div>
+        <div className="tpbrandproduct__price-modern">
+          <span>${product.sale_price ? product.sale_price.toFixed(2) : product.price.toFixed(2)}</span>
+          {product.sale_price && <del>${product.price.toFixed(2)}</del>}
         </div>
       </div>
     </div>
