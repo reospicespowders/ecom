@@ -30,7 +30,7 @@ const SearchArea = () => {
     setActiveTab(tab);
   }
   const searchParams = useSearchParams();
-  const searchText = searchParams.get("searchText");
+  const searchText = searchParams?.get("searchText") ?? "";
 
   const titleMatch = (item: IProductData) => {
     return (

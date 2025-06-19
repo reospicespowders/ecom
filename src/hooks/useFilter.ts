@@ -11,7 +11,7 @@ export function useProductFilter(initialCategorySlug?: string) {
   const [products, setProducts] = useState<IProductData[]>([]);
   const { category, subCategory, sizes, colors, brand, priceValue, ratingValue } = useAppSelector((state) => state.filter);
   const searchParams = useSearchParams();
-  const searchText = searchParams.get("searchText");
+  const searchText = searchParams?.get("searchText") ?? "";
 
   // Fetch products from Sanity
   useEffect(() => {

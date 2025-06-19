@@ -255,4 +255,19 @@ export async function submitReview(reviewData: {
     console.error('Error submitting review:', error);
     throw error;
   }
+}
+
+export async function getBlogByCategoryAndSlug(categorySlug: string, blogSlug: string) {
+  const query = `*[_type == "blog" && slug.current == $blogSlug && category->slug.current == $categorySlug][0]{
+    _id,
+    title,
+    slug,
+    excerpt,
+    content,
+    "mainImage": mainImage.asset->url,
+    author,
+    publishedAt,
+    category->{_id, title, slug}
+  }`;
+  return client.fetch(query, { blogSlug, categorySlug });
 } 
