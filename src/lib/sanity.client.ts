@@ -7,8 +7,4 @@ export const client = createClient({
   useCdn: false,
   token: process.env.NEXT_PUBLIC_SANITY_TOKEN,
   perspective: 'published',
-  stega: {
-    enabled: false,
-    studioUrl: '/studio',
-  },
 }) 
