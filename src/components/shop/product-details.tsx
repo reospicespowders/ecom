@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IProductData } from "@/types/product-d-t";
 import { useAppDispatch } from "@/redux/hook";
-import { add_cart_product } from "@/redux/features/cart";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { add_to_compare } from "@/redux/features/compare";
 import { Rating } from "react-simple-star-rating";
@@ -19,6 +18,7 @@ interface Props {
 
 const ProductDetails = ({ product }: Props) => {
   const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [mainImage, setMainImage] = useState(product.image);
   const [imgLoading, setImgLoading] = useState(true);
@@ -47,8 +47,31 @@ const ProductDetails = ({ product }: Props) => {
     }
   };
 
-  const handleAddToCart = () => {
-    dispatch(add_cart_product({ ...product, orderQuantity: quantity }));
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: product._id,
+          quantity: quantity,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add item to cart');
+      }
+      // Optionally, show a success message or update UI
+      console.log('Item added to cart successfully');
+    } catch (error) {
+      console.error(error);
+      // Optionally, show an error message
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   // Calculate discount
@@ -204,9 +227,9 @@ const ProductDetails = ({ product }: Props) => {
               <button
                 className="tp-btn-2 mr-10"
                 onClick={handleAddToCart}
-                disabled={product.quantity === 0}
+                disabled={product.quantity === 0 || addingToCart}
               >
-                Add to Cart
+                {addingToCart ? 'Adding...' : 'Add to Cart'}
               </button>
               <a className="tp-btn-wishlist pointer" onClick={() => dispatch(add_to_wishlist(product))}>
                 <i className="icon-heart"></i>

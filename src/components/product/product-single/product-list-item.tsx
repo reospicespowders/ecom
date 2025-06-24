@@ -6,7 +6,6 @@ import { Rating } from "react-simple-star-rating";
 import { IProductData } from "@/types/product-d-t";
 import { averageRating, discountPercentage, isHot } from "@/utils/utils";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { add_cart_product } from "@/redux/features/cart";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { add_to_compare } from "@/redux/features/compare";
 import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
@@ -22,23 +21,46 @@ const ProductListItem = ({ product }: IProps) => {
   if (sale_price) {
     discount = discountPercentage(price, sale_price);
   }
-  const [isItemAddToCart, setIsItemAddToCart] = useState(false);
   const [isCompareAdd, setIsCompareAdd] = useState(false);
   const [isWishlistAdd, setIsWishlistAdd] = useState(false);
-  const { cart_products } = useAppSelector((state) => state.cart);
+  const [addingToCart, setAddingToCart] = useState(false);
   const { wishlist } = useAppSelector((state) => state.wishlist);
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    setIsItemAddToCart(cart_products.some((i) => i.id === product.id));
     setIsWishlistAdd(wishlist.some((i) => i.id === product.id));
     setIsCompareAdd(compare_products.some((i) => i.id === product.id));
-  }, [cart_products, compare_products, product.id, wishlist]);
+  }, [compare_products, product.id, wishlist]);
 
   const handleQuickView = () => {
     dispatch(handleModalProduct({ product }));
     dispatch(handleOpenModal());
+  };
+
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: product._id,
+          quantity: 1, // Assuming quantity of 1 for list items
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add item to cart');
+      }
+      console.log('Item added to cart successfully');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   return (
@@ -112,17 +134,12 @@ const ProductListItem = ({ product }: IProps) => {
           ${sale_price ? sale_price.toFixed(2) : price.toFixed(2)}
           {sale_price && <del>${price.toFixed(2)}</del>}
         </h3>
-        {isItemAddToCart ? (
-          <Link href="/cart" className="tp-btn-2 mb-10">
-            View Cart
-          </Link>
-        ) : (
           <button className="tp-btn-2 mb-10"
-            onClick={() => dispatch(add_cart_product(product))}
+            onClick={handleAddToCart}
+            disabled={addingToCart}
           >
-            Add to Cart
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
           </button>
-        )}
       </div>
     </div>
   );

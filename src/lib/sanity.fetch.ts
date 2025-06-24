@@ -99,6 +99,53 @@ export async function getProductBySlug(slug: string) {
   return client.fetch(query, { slug });
 }
 
+export async function getProductById(id: string) {
+  const query = `*[_type == "product" && _id == $id][0] {
+    _id,
+    id,
+    sku,
+    title,
+    price,
+    sale_price,
+    "image": image.asset->url,
+    category->{
+      _id,
+      id,
+      name,
+      slug
+    },
+    quantity,
+    unit,
+    "gallery": gallery[].asset->url,
+    description,
+    videoId,
+    orderQuantity,
+    productInfoList,
+    additionalInfo,
+    reviews,
+    tags,
+    status,
+    brand,
+    sold,
+    created_at,
+    updated_at,
+    color,
+    offerDate,
+    "slug": slug.current,
+    "reviews": reviews[]->{
+      _id,
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      approved,
+      _createdAt
+    }[approved == true]
+  }`;
+
+  return client.fetch(query, { id });
+}
+
 export async function getProductsByCategory(categorySlug: string) {
   const query = `*[_type == "product" && category->slug.current == $categorySlug] {
     _id,

@@ -15,7 +15,7 @@ const BlogSingle = ({ blog, bottom_show,style_2 }: Props) => {
     <div className={`tpblog__item ${style_2 ? "tpblog__item-2 mb-20" : ""}`}>
       <div className="tpblog__thumb fix">
         <Link href={`/blog-details/${blog.id}`}>
-          <Image src={blog.image} alt="blog-img" style={{ height: "auto" }} />
+          <Image src={blog.image} alt="blog-img" width={400} height={400} style={{ height: "auto" }} />
         </Link>
       </div>
       <div className="tpblog__wrapper">

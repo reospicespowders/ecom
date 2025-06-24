@@ -8,7 +8,6 @@ import { averageRating, discountPercentage, isHot } from "@/utils/utils";
 import CountdownTimer from "@/components/common/countdown-timer";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
-import { add_cart_product } from "@/redux/features/cart";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { PortableText } from '@portabletext/react'; // Ensure this import is present if not already there
@@ -29,10 +28,10 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
   if (sale_price) {
     discount = discountPercentage(price, sale_price);
   }
-  const [isItemAddToCart, setIsItemAddToCart] = useState(false);
   const [isCompareAdd, setIsCompareAdd] = useState(false);
   const [isWishlistAdd, setIsWishlistAdd] = useState(false);
-  const { cart_products } = useAppSelector((state) => state.cart);
+  const [addingToCart, setAddingToCart] = useState(false);
+
   const { wishlist } = useAppSelector((state) => state.wishlist);
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
@@ -45,10 +44,9 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
   const [quantityCount, setQuantityCount] = useState(product.orderQuantity || 1); // Declaring quantity state
 
   useEffect(() => {
-    setIsItemAddToCart(cart_products.some((i) => i.id === product.id));
     setIsWishlistAdd(wishlist.some((i) => i.id === product.id));
     setIsCompareAdd(compare_products.some((i) => i.id === product.id));
-  }, [cart_products, compare_products, product.id, wishlist]);
+  }, [compare_products, product.id, wishlist]);
 
   const handleProductModal = (prd: IProductData) => {
     dispatch(handleModalProduct({ product: prd }))
@@ -61,8 +59,31 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
     }
   };
 
-  const handleAddToCart = () => {
-    dispatch(add_cart_product({ ...product, orderQuantity: quantityCount })); // Using quantityCount here
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: product._id,
+          quantity: quantityCount,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add item to cart');
+      }
+      // Optionally, show a success message or update UI
+      console.log('Item added to cart successfully');
+    } catch (error) {
+      console.error(error);
+      // Optionally, show an error message
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   return (
@@ -160,18 +181,14 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
       </div>
       <div className="tpproduct__hover-text">
         <div className="tpproduct__hover-btn d-flex justify-content-center mb-10">
-           {isItemAddToCart ? (
-            <Link href="/cart" className="tp-btn-2 pointer">
-              View Cart
-            </Link>
-          ) : (
             <a
-              onClick={() => dispatch(add_cart_product({ ...product, orderQuantity: quantityCount }))}
+              onClick={handleAddToCart}
               className="tp-btn-2 pointer"
+              style={{ cursor: addingToCart ? 'not-allowed' : 'pointer' }}
+              aria-disabled={addingToCart}
             >
-              Add to Cart
+              {addingToCart ? 'Adding...' : 'Add to Cart'}
             </a>
-          )}
         </div>
         <div className="tpproduct__descrip">
           <ul>
