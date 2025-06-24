@@ -5,6 +5,8 @@ import { IProductData } from "@/types/product-d-t";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { add_cart_product, decrement, increment } from "@/redux/features/cart";
 import { discountPercentage } from "@/utils/utils";
+import { handleAddToCart } from '@/utils/cart';
+import { useSession } from '@clerk/nextjs';
 
 // prop type
 type IProps = {
@@ -18,6 +20,7 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
   const [activeImg, setActiveImg] = React.useState(image);
   const { orderQuantity } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
+  const { session } = useSession();
 
   let discount = 0;
   if (product.sale_price) {
@@ -160,8 +163,13 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                       <i className="far fa-plus"></i>
                     </span>
                   </div>
-                  <div className="product__details-btn" onClick={() => dispatch(add_cart_product(product))}>
-                    <a className="pointer">add to cart</a>
+                  <div className="product__details-btn">
+                    <a
+                      className="pointer"
+                      onClick={() => handleAddToCart(product.id, orderQuantity, () => session?.getToken() ?? Promise.resolve(null))}
+                    >
+                      add to cart
+                    </a>
                   </div>
                 </div>
                 <ul className="product__details-check">

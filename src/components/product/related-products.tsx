@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import ProductSingle from "./product-single/product-single";
+import { getProductsByCategory } from '@/lib/sanity.fetch';
+import { IProductData } from '@/types/product-d-t';
 
 // slider setting
 const slider_setting = {
@@ -39,11 +41,24 @@ const slider_setting = {
 };
 // prop type
 type IProps = {
-  category: string;
+  product: IProductData;
 };
 
-const RelatedProducts = ({ category }: IProps) => {
-  const related_products: any[] = [];
+const RelatedProducts = ({ product }: IProps) => {
+  const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (product.category?.slug?.current) {
+        const fetchedProducts = await getProductsByCategory(product.category.slug.current);
+        setRelatedProducts(fetchedProducts.filter((p: IProductData) => p._id !== product._id));
+      }
+    };
+    fetchRelated();
+  }, [product.category?.slug, product._id]);
+
+  if (relatedProducts.length === 0) return null;
+
   return (
     <section className="product-area whight-product pt-75 pb-80">
       <div className="container">
@@ -60,9 +75,9 @@ const RelatedProducts = ({ category }: IProps) => {
             modules={[Navigation]}
             className="swiper-container tpproduct-active tpslider-bottom p-relative"
           >
-            {related_products.map((product, index) => (
-              <SwiperSlide key={index}>
-                <ProductSingle product={product} />
+            {relatedProducts.map((related, index) => (
+              <SwiperSlide key={related._id || index}>
+                <ProductSingle product={related} />
               </SwiperSlide>
             ))}
           </Swiper>

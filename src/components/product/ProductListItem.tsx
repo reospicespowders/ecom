@@ -47,7 +47,7 @@ const ProductListItem = ({ product }: { product: IProductData }) => {
           <p>{product.description}</p>
         </div>
         <div className="product-action-2">
-          <button onClick={() => handleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null))} className="cart-btn-2" type="button"><i className="fas fa-shopping-cart"></i> Add to Cart</button>
+          <button onClick={() => handleAddToCart(product.id, 1, () => session?.getToken() ?? Promise.resolve(null))} className="cart-btn-2" type="button"><i className="fas fa-shopping-cart"></i> Add to Cart</button>
           <a href="#" className="action-btn-2"><i className="fas fa-heart"></i></a>
           <a href="#" className="action-btn-2"><i className="fas fa-layer-group"></i></a>
         </div>
