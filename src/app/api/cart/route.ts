@@ -7,6 +7,17 @@ export async function POST(request: NextRequest) {
   // Debug logging for environment variables
   console.log('CLERK_SECRET_KEY is set:', !!process.env.CLERK_SECRET_KEY);
 
+  // Parse the request body
+  const body = await request.json();
+  const { product_id, quantity, jwt } = body;
+
+  // If a JWT is provided in the body, log it (or use it for auth if needed)
+  if (jwt) {
+    console.log('Received JWT in payload:', jwt);
+    // TODO: Optionally verify or decode the JWT here if you want to use it for authentication
+    // For now, just log it for debugging
+  }
+
   // Debug logging for Clerk auth
   const { userId, getToken } = await auth();
   const token = await getToken();
@@ -16,7 +27,6 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getAuthUserId();
     const supabase = createClerkSupabaseClient();
-    const { product_id, quantity } = await request.json();
 
     if (!product_id || !quantity) {
       return NextResponse.json({ error: 'Missing product_id or quantity' }, { status: 400 });
