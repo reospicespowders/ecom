@@ -27,8 +27,10 @@ const CartArea = () => {
     if (!session) return;
     try {
       setLoading(true);
+      const token = await session.getToken();
       const response = await fetch('/api/cart', {
         method: 'GET',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         credentials: 'include',
       });
       const data = await response.json();
@@ -55,9 +57,13 @@ const CartArea = () => {
   const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
     if (!session) return;
     try {
+      const token = await session.getToken();
       await fetch(`/api/cart/${itemId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ quantity: newQuantity }),
         credentials: 'include',
       });
@@ -70,8 +76,10 @@ const CartArea = () => {
   const handleRemoveItem = async (itemId: number) => {
     if (!session) return;
     try {
+      const token = await session.getToken();
       await fetch(`/api/cart/${itemId}`, {
         method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         credentials: 'include',
       });
       fetchCartItems(); // Re-fetch to update state
@@ -83,8 +91,10 @@ const CartArea = () => {
   const handleClearCart = async () => {
     if (!session) return;
     try {
+        const token = await session.getToken();
         await fetch('/api/cart', {
           method: 'DELETE',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           credentials: 'include',
         });
         fetchCartItems(); // Re-fetch to update state

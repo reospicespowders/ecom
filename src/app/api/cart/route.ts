@@ -67,7 +67,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('API /api/cart called');
     const userId = await getAuthUserId();
+    console.log('userId:', userId);
     const supabase = createClerkSupabaseClient();
     const { data: cartItems, error } = await supabase
       .from('carts')
@@ -75,16 +77,16 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error fetching cart:', error);
+      console.error('Supabase error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(cartItems);
   } catch (error) {
+    console.error('API /api/cart error:', error, (error as any)?.stack);
     if (error instanceof Error && error.message === "User not authenticated") {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('An unexpected error occurred:', error);
     return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });
   }
 }

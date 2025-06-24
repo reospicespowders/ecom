@@ -3,6 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IProductData } from "@/types/product-d-t";
+import { useSession } from '@clerk/nextjs';
 
 type IProps = {
   product: IProductData & { cartId: string };
@@ -10,12 +11,19 @@ type IProps = {
 };
 
 const CartItem = ({ product, onUpdate }: IProps) => {
+  const { session } = useSession();
+
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1) return;
     try {
+      const token = await session?.getToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`/api/cart/${product.cartId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ quantity: newQuantity }),
       });
       if (!response.ok) throw new Error('Failed to update quantity');
@@ -27,8 +35,12 @@ const CartItem = ({ product, onUpdate }: IProps) => {
 
   const handleRemoveItem = async () => {
     try {
+      const token = await session?.getToken();
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`/api/cart/${product.cartId}`, {
         method: 'DELETE',
+        headers,
       });
       if (!response.ok) throw new Error('Failed to remove item');
       onUpdate();

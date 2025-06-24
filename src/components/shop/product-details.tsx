@@ -5,6 +5,7 @@ import { IProductData } from "@/types/product-d-t";
 import { useAppDispatch } from "@/redux/hook";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { add_to_compare } from "@/redux/features/compare";
+import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
 import { Rating } from "react-simple-star-rating";
 import { averageRating, discountPercentage } from "@/utils/utils"; // Added discountPercentage
 import { PortableText } from '@portabletext/react';
@@ -48,30 +49,10 @@ const ProductDetails = ({ product }: Props) => {
   };
 
   const handleAddToCart = async () => {
+    console.log('Add to Cart button clicked', product._id, quantity);
     setAddingToCart(true);
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product._id,
-          quantity: quantity,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add item to cart');
-      }
-      // Optionally, show a success message or update UI
-      console.log('Item added to cart successfully');
-    } catch (error) {
-      console.error(error);
-      // Optionally, show an error message
-    } finally {
-      setAddingToCart(false);
-    }
+    await sharedHandleAddToCart(product._id, quantity, () => Promise.resolve(null));
+    setAddingToCart(false);
   };
 
   // Calculate discount

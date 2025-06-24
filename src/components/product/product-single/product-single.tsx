@@ -11,6 +11,7 @@ import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { PortableText } from '@portabletext/react'; // Ensure this import is present if not already there
+import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
 
 // prop type
 type IProps = {
@@ -60,30 +61,10 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
   };
 
   const handleAddToCart = async () => {
+    console.log('Add to Cart button clicked', product._id, quantityCount);
     setAddingToCart(true);
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product._id,
-          quantity: quantityCount,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add item to cart');
-      }
-      // Optionally, show a success message or update UI
-      console.log('Item added to cart successfully');
-    } catch (error) {
-      console.error(error);
-      // Optionally, show an error message
-    } finally {
-      setAddingToCart(false);
-    }
+    await sharedHandleAddToCart(product._id, quantityCount, () => Promise.resolve(null));
+    setAddingToCart(false);
   };
 
   return (

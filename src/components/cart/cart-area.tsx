@@ -3,16 +3,21 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import CartItem from './cart-item';
 import { IProductData } from '@/types/product-d-t';
-import { getProductById } from '@/lib/sanity.fetch'; 
+import { getProductById } from '@/lib/sanity.fetch';
+import { useSession } from '@clerk/nextjs';
 
 const CartArea = () => {
   const [cartItems, setCartItems] = useState<(IProductData & { cartId: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const { session } = useSession();
 
   async function fetchCartDetails() {
     try {
-      const response = await fetch('/api/cart');
+      const token = await session?.getToken();
+      const response = await fetch('/api/cart', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch cart items');
       }
@@ -46,7 +51,11 @@ const CartArea = () => {
 
   const handleClearCart = async () => {
     try {
-      const response = await fetch('/api/cart', { method: 'DELETE' });
+      const token = await session?.getToken();
+      const response = await fetch('/api/cart', {
+        method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
       if (!response.ok) throw new Error('Failed to clear cart');
       setCartItems([]);
     } catch (error) {
