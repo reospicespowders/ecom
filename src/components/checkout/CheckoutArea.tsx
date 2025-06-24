@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@clerk/nextjs';
 import { useClerkSupabaseClient } from '@/utils/supabase/client';
-import { getProductById, IProduct } from '@/lib/sanity.fetch';
+import { getProductById } from '@/lib/sanity.fetch';
+import { IProductData } from '@/types/product-d-t';
 
 interface CartItem {
   id: number;
@@ -13,7 +14,7 @@ interface CartItem {
 }
 
 interface CartItemWithProduct extends CartItem {
-  product: IProduct;
+  product: IProductData;
 }
 
 const CheckoutArea = () => {
@@ -190,7 +191,7 @@ const CheckoutArea = () => {
                       {cartItems.map(item => (
                         <tr key={item.id} className="cart_item">
                           <td className="product-name">
-                            {item.product.name} <strong className="product-quantity"> × {item.quantity}</strong>
+                            {item.product.title} <strong className="product-quantity"> × {item.quantity}</strong>
                           </td>
                           <td className="product-total">
                             <span className="amount">${(item.product.sale_price ?? item.product.price) * item.quantity}</span>

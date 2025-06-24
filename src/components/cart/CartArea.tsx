@@ -3,7 +3,8 @@ import { useSession } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useClerkSupabaseClient } from '@/utils/supabase/client';
-import { getProductById, IProduct } from '@/lib/sanity.fetch';
+import { getProductById } from '@/lib/sanity.fetch';
+import { IProductData } from '@/types/product-d-t';
 import CartItem from './CartItem';
 
 interface ICartItem {
@@ -13,7 +14,7 @@ interface ICartItem {
 }
 
 export interface ICartItemWithProduct extends ICartItem {
-  product: IProduct;
+  product: IProductData;
 }
 
 const CartArea = () => {

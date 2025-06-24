@@ -2,20 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { IProduct } from '@/lib/sanity.fetch';
+import { IProductData } from '@/types/product-d-t';
 import { useSession } from '@clerk/nextjs';
 import { handleAddToCart } from '@/utils/cart';
 
-const ProductListItem = ({ product }: { product: IProduct }) => {
+const ProductListItem = ({ product }: { product: IProductData }) => {
   const { session } = useSession();
   return (
     <div className="product__item-2 product__item-3 d-sm-flex align-items-center mb-40">
       <div className="product__thumb-2 mr-25">
         <div className="product-image w-img">
-          <Link href={`/shop/${product.slug.current}`}>
+          <Link href={`/shop/${product.slug}`}>
             <Image
-              src={product.images[0].asset.url}
-              alt={product.name}
+              src={product.image}
+              alt={product.title}
               width={200}
               height={200}
             />
@@ -38,7 +38,7 @@ const ProductListItem = ({ product }: { product: IProduct }) => {
             <span>(01 review)</span>
           </div>
         </div>
-        <h6 className="product-name"><Link href={`/shop/${product.slug.current}`}>{product.name}</Link></h6>
+        <h6 className="product-name"><Link href={`/shop/${product.slug}`}>{product.title}</Link></h6>
         <div className="price-2">
           <span>${product.price}</span>
           {product.sale_price && <span className="old-price">${product.sale_price}</span>}

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   console.log('Clerk token:', token);
 
   try {
-    const userId = getAuthUserId();
+    const userId = await getAuthUserId();
     const supabase = createClerkSupabaseClient();
     const { product_id, quantity } = await request.json();
 
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = getAuthUserId();
+    const userId = await getAuthUserId();
     const supabase = createClerkSupabaseClient();
     const { data: cartItems, error } = await supabase
       .from('carts')
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = getAuthUserId();
+    const userId = await getAuthUserId();
     const supabase = createClerkSupabaseClient();
     const { error } = await supabase
       .from('carts')

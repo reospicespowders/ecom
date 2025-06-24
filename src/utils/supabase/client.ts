@@ -16,7 +16,7 @@ export const useClerkSupabaseClient = () => {
           if (!session) {
             // This can happen during the initial render before Clerk is loaded.
             // Returning the original fetch handles public data access gracefully.
-            return fetch(url, options);
+            return fetch(url as RequestInfo, options);
           }
 
           const clerkToken = await session.getToken();
@@ -24,7 +24,7 @@ export const useClerkSupabaseClient = () => {
           const headers = new Headers(options?.headers);
           headers.set('Authorization', `Bearer ${clerkToken}`);
 
-          return fetch(url, {
+          return fetch(url as RequestInfo, {
             ...options,
             headers,
           });

@@ -8,7 +8,7 @@ import Footer from "@/layouts/footer/footer";
 
 const OrderSuccessPage = () => {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams!.get('orderId');
 
   return (
     <Wrapper>

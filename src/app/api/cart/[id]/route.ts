@@ -7,7 +7,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    getAuthUserId() // just to check auth
+    await getAuthUserId() // just to check auth
     const supabase = createClerkSupabaseClient()
     const { quantity } = await request.json()
     const cartItemId = params.id
@@ -43,7 +43,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    getAuthUserId() // just to check auth
+    await getAuthUserId() // just to check auth
     const supabase = createClerkSupabaseClient()
     const cartItemId = params.id
 

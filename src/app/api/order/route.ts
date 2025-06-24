@@ -5,7 +5,7 @@ import { getProductById } from '@/lib/sanity.fetch';
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = getAuthUserId();
+    const userId = await getAuthUserId();
     const supabase = createClerkSupabaseClient();
     const { orderDetails } = await request.json();
 

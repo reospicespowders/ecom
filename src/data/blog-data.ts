@@ -12,7 +12,7 @@ const blog_data = [
   {
     id: 1,
     title: "Avocado Grilled Salmon, Rich In Nutrients For The Body",
-    image: blog_1,
+    image: '/assets/img/blog/blog-bg-1.jpg',
     author:'Admin',
     category:'Lifestyle',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -22,7 +22,7 @@ const blog_data = [
   {
     id: 2,
     title: "The Best Great Benefits Of Fresh Beef For Women's Health",
-    image: blog_2,
+    image: '/assets/img/blog/blog-bg-2.jpg',
     author:'Admin',
     category:'Organics',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -32,7 +32,7 @@ const blog_data = [
   {
     id: 3,
     title: "Ways To Choose Fruits & Seafoods Good For Pregnancy",
-    image: blog_3,
+    image: '/assets/img/blog/blog-bg-3.jpg',
     author:'Admin',
     category:'Organics',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -42,7 +42,7 @@ const blog_data = [
   {
     id: 4,
     title: "Summer Breakfast For The Healthy  Morning With Tomatoes",
-    image: blog_4,
+    image: '/assets/img/blog/blog-bg-4.jpg',
     author:'Admin',
     category:'Shopping',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -52,7 +52,7 @@ const blog_data = [
   {
     id: 5,
     title: "Popular Reasons You Must Drinks Juice Everyday",
-    image: blog_5,
+    image: '/assets/img/blog/blog-bg-5.jpg',
     author:'Admin',
     category:'Foods',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -62,7 +62,7 @@ const blog_data = [
   {
     id: 6,
     title: "Perfect Quality Reasonable Price For Your  Family",
-    image: blog_6,
+    image: '/assets/img/blog/blog-bg-6.jpg',
     author:'Admin',
     category:'Lifestyle',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -72,7 +72,7 @@ const blog_data = [
   {
     id: 7,
     title: "Ways To Choose Fruits Seafoods Good For Pregnancy",
-    image: blog_7,
+    image: '/assets/img/blog/blog-bg-7.jpg',
     author:'Admin',
     category:'Dairy Farm',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -81,8 +81,8 @@ const blog_data = [
   },
   {
     id: 8,
-    title: "The Best Great Benefits Of Fresh Beef For Women’s Health",
-    image: blog_8,
+    title: "The Best Great Benefits Of Fresh Beef For Women's Health",
+    image: '/assets/img/blog/blog-bg-8.jpg',
     author:'Admin',
     category:'organis',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',
@@ -92,7 +92,7 @@ const blog_data = [
   {
     id: 9,
     title: "Avocado Grilled Salmon, Rich In Nutrients For The Body",
-    image: blog_9,
+    image: '/assets/img/blog/blog-bg-9.jpg',
     author:'Admin',
     category:'Lifestyle',
     desc:'These are the people who make your life easier. Egestas is tristique vestibulum',

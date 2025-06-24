@@ -6,7 +6,7 @@ import { IProductData } from '@/types/product-d-t';
 import { getProductById } from '@/lib/sanity.fetch'; 
 
 const CartArea = () => {
-  const [cartItems, setCartItems] = useState<IProductData[]>([]);
+  const [cartItems, setCartItems] = useState<(IProductData & { cartId: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 

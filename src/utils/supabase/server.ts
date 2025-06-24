@@ -8,13 +8,13 @@ export const createClerkSupabaseClient = () => {
     {
       global: {
         fetch: async (url, options = {}) => {
-          const { getToken } = auth();
+          const { getToken } = await auth();
           const supabaseToken = await getToken();
 
           const headers = new Headers(options?.headers);
           headers.set('Authorization', `Bearer ${supabaseToken}`);
           
-          return fetch(url, {
+          return fetch(url as RequestInfo, {
             ...options,
             headers,
           });

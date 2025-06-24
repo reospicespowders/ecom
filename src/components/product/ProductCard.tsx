@@ -2,20 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { IProduct } from '@/lib/sanity.fetch';
+import { IProductData } from '@/types/product-d-t';
 import { useSession } from '@clerk/nextjs';
 import { handleAddToCart } from '@/utils/cart';
 
-const ProductCard = ({ product, style }: { product: IProduct, style: string }) => {
+const ProductCard = ({ product, style }: { product: IProductData, style: string }) => {
   const { session } = useSession();
   return (
     <div className={`product__item ${style} w-100`}>
       <div className="product__thumb fix">
         <div className="product-image w-img">
-          <Link href={`/shop/${product.slug.current}`}>
+          <Link href={`/shop/${product.slug}`}>
             <Image
-              src={product.images[0].asset.url}
-              alt={product.name}
+              src={product.image}
+              alt={product.title}
               width={300}
               height={300}
             />
@@ -37,7 +37,7 @@ const ProductCard = ({ product, style }: { product: IProduct, style: string }) =
         </div>
       </div>
       <div className="product__content">
-        <h6><Link href={`/shop/${product.slug.current}`}>{product.name}</Link></h6>
+        <h6><Link href={`/shop/${product.slug}`}>{product.title}</Link></h6>
         <div className="rating mb-5">
           <ul>
             <li><a href="#"><i className="fal fa-star"></i></a></li>

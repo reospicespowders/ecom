@@ -12,11 +12,11 @@ import { getProductById } from '@/lib/sanity.fetch';
 type FormData = {
    firstName: string;
    lastName: string;
-   company: string;
+   company?: string;
    country: string;
    address: string;
    city: string;
-   apartment: string;
+   apartment?: string;
    state: string;
    zipCode: string;
    email: string;
