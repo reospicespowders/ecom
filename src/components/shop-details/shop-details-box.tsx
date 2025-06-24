@@ -166,7 +166,7 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                   <div className="product__details-btn">
                     <a
                       className="pointer"
-                      onClick={() => handleAddToCart(product.id, orderQuantity, () => session?.getToken() ?? Promise.resolve(null))}
+                      onClick={() => handleAddToCart(product._id, orderQuantity, () => session?.getToken() ?? Promise.resolve(null))}
                     >
                       add to cart
                     </a>
