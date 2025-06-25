@@ -13,7 +13,7 @@ export const handleAddToCart = async (productId: string, quantity: number, getTo
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ product_id: productId, quantity }),
+      body: JSON.stringify({ product_id: productId, quantity, jwt: token }),
       credentials: 'include',
     });
 

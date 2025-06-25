@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClerkSupabaseClient } from '@/utils/supabase/server'
 import { getAuthUserId } from '@/utils/auth'
 
+console.error('test2');
+
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -16,12 +19,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Quantity must be a positive number' }, { status: 400 })
     }
 
+    console.error('test145');
+
     const { data, error } = await supabase
       .from('carts')
       .update({ quantity })
       .eq('id', cartItemId)
       .select()
       .single()
+
+      console.error('test1');
 
     if (error) {
       console.error('Error updating cart item:', error)
@@ -37,6 +44,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 })
   }
 }
+
+console.error('test4');
+
 
 export async function DELETE(
   request: NextRequest,
@@ -66,3 +76,5 @@ export async function DELETE(
     return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 })
   }
 } 
+
+console.error('test3');

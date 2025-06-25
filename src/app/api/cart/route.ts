@@ -1,6 +1,7 @@
 import { createClerkSupabaseClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUserId } from '@/utils/auth';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
   // Debug logging for environment variables
@@ -8,7 +9,20 @@ export async function POST(request: NextRequest) {
 
   // Parse the request body
   const body = await request.json();
-  const { product_id, quantity } = body;
+  const { product_id, quantity, jwt } = body;
+
+  // If a JWT is provided in the body, log it (or use it for auth if needed)
+  if (jwt) {
+    console.log('Received JWT in payload:', jwt);
+    // TODO: Optionally verify or decode the JWT here if you want to use it for authentication
+    // For now, just log it for debugging
+  }
+
+  // Debug logging for Clerk auth
+  const { userId, getToken } = await auth();
+  const token = await getToken();
+  console.log('Clerk userId:', userId);
+  console.log('Clerk token:', token);
 
   try {
     const userId = await getAuthUserId();
@@ -17,8 +31,6 @@ export async function POST(request: NextRequest) {
     if (!product_id || !quantity) {
       return NextResponse.json({ error: 'Missing product_id or quantity' }, { status: 400 });
     }
-
-    console.log('Attempting to insert/update cart with:', { userId, product_id, quantity });
 
     const { data: existingCartItem, error: selectError } = await supabase
       .from('carts')
