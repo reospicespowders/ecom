@@ -6,6 +6,9 @@ export const createClerkSupabaseClient = () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      db: {
+        schema: 'api'
+      },
       global: {
         fetch: async (url, options = {}) => {
           const { getToken } = await auth();
