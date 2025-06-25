@@ -9,6 +9,8 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { add_to_compare } from "@/redux/features/compare";
 import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
+import { useSession } from '@clerk/nextjs';
+import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
 
 // prop type
 type IProps = {
@@ -24,6 +26,7 @@ const ProductListItem = ({ product }: IProps) => {
   const [isCompareAdd, setIsCompareAdd] = useState(false);
   const [isWishlistAdd, setIsWishlistAdd] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const { session } = useSession();
   const { wishlist } = useAppSelector((state) => state.wishlist);
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
@@ -40,27 +43,8 @@ const ProductListItem = ({ product }: IProps) => {
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product._id,
-          quantity: 1, // Assuming quantity of 1 for list items
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add item to cart');
-      }
-      console.log('Item added to cart successfully');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setAddingToCart(false);
-    }
+    await sharedHandleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null));
+    setAddingToCart(false);
   };
 
   return (

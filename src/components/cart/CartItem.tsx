@@ -18,11 +18,11 @@ const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemoveIte
   return (
     <tr>
       <td className="product-thumbnail">
-        <a href={`/shop/${item.product.slug}`}>
+        <a href={`/shop/${item.product.category?.slug?.current || 'uncategorized'}/${item.product.slug}`}>
           <img src={item.product.image} alt={item.product.title} style={{ width: '100px' }}/>
         </a>
       </td>
-      <td className="product-name"><a href={`/shop/${item.product.slug}`}>{item.product.title}</a></td>
+      <td className="product-name"><a href={`/shop/${item.product.category?.slug?.current || 'uncategorized'}/${item.product.slug}`}>{item.product.title}</a></td>
       <td className="product-price"><span className="amount">${item.product.sale_price ?? item.product.price}</span></td>
       <td className="product-quantity">
         <div className="cart-plus-minus">

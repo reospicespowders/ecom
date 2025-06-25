@@ -52,7 +52,7 @@ const CartItem = ({ product, onUpdate }: IProps) => {
   return (
     <tr>
       <td className="product-thumbnail">
-        <Link href={`/shop-details/${product.slug}`}>
+        <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>
           <Image
             src={product.image}
             width={125}
@@ -62,7 +62,7 @@ const CartItem = ({ product, onUpdate }: IProps) => {
         </Link>
       </td>
       <td className="product-name">
-        <Link href={`/shop-details/${product.slug}`}>{product.title}</Link>
+        <Link href={`/shop/${product.category?.slug?.current || 'uncategorized'}/${product.slug}`}>{product.title}</Link>
       </td>
       <td className="product-price">
         {product.sale_price ? (

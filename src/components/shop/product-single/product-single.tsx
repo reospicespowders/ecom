@@ -8,9 +8,10 @@ import { averageRating, discountPercentage, isHot } from "@/utils/utils";
 import CountdownTimer from "@/components/common/countdown-timer";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
-import { add_cart_product } from "@/redux/features/cart";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
+import { useSession } from '@clerk/nextjs';
+import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
 
 // prop type
 type IProps = {
@@ -28,24 +29,29 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
   if (sale_price) {
     discount = discountPercentage(price, sale_price);
   }
-  const [isItemAddToCart, setIsItemAddToCart] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [isCompareAdd, setIsCompareAdd] = useState(false);
   const [isWishlistAdd, setIsWishlistAdd] = useState(false);
-  const { cart_products } = useAppSelector((state) => state.cart);
+  const { session } = useSession();
   const { wishlist } = useAppSelector((state) => state.wishlist);
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    setIsItemAddToCart(cart_products.some((i) => i.id === product.id));
     setIsWishlistAdd(wishlist.some((i) => i.id === product.id));
     setIsCompareAdd(compare_products.some((i) => i.id === product.id));
-  }, [cart_products, compare_products, product.id, wishlist]);
+  }, [compare_products, product.id, wishlist]);
 
   const handleProductModal = (prd: IProductData) => {
     dispatch(handleModalProduct({ product: prd }))
     dispatch(handleOpenModal())
   }
+
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    await sharedHandleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null));
+    setAddingToCart(false);
+  };
 
   return (
     <div className={`tpproduct p-relative ${cls ? cls : ""} ${progress ? "tpprogress__hover" : ""}`}>
@@ -124,18 +130,13 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
       </div>
       <div className="tpproduct__hover-text">
         <div className="tpproduct__hover-btn d-flex justify-content-center mb-10">
-          {isItemAddToCart ? (
-            <Link href="/cart" className="tp-btn-2">
-              View Cart
-            </Link>
-          ) : (
-            <button
-              onClick={() => dispatch(add_cart_product(product))}
-              className="tp-btn-2"
-            >
-              Add to Cart
-            </button>
-          )}
+          <button
+            onClick={handleAddToCart}
+            className="tp-btn-2"
+            disabled={addingToCart}
+          >
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
+          </button>
         </div>
         <div className="tpproduct__descrip">
           <ul>

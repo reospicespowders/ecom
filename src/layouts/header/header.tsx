@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 // internal
@@ -10,16 +10,51 @@ import useSticky from '@/hooks/use-sticky';
 import HeaderTop from './header-top';
 import SearchPopup from '@/components/common/modal/search-popup';
 import CartSidebar from '@/components/sidebar/cart-sidebar';
-import useCartInfo from '@/hooks/use-cart-info';
 import MobileSidebar from '@/components/sidebar/mobile-sidebar';
-import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { UserButton, SignedIn, SignedOut, useSession } from "@clerk/nextjs";
 
 const Header = () => {
   const {sticky} = useSticky();
-  const {quantity} = useCartInfo();
+  const [cartQuantity, setCartQuantity] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [isMobileSidebarOpen,setIsMobileSidebarOpen] = React.useState(false);
+  const { session } = useSession();
+
+  const fetchCartQuantity = async () => {
+    if (!session) return;
+    
+    try {
+      const token = await session.getToken();
+      const response = await fetch('/api/cart', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const cartData = await response.json();
+        const totalQuantity = cartData.reduce((acc: number, item: any) => acc + item.quantity, 0);
+        setCartQuantity(totalQuantity);
+      }
+    } catch (error) {
+      console.error('Error fetching cart quantity:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartQuantity();
+  }, [session]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      fetchCartQuantity();
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, [session]);
+
   return (
     <>
      <header>
@@ -65,7 +100,7 @@ const Header = () => {
                                  <i>
                                     <Image src={cart_icon} alt="icon"/>
                                  </i>
-                                 <span>{quantity}</span>
+                                 <span>{cartQuantity}</span>
                               </button>
                            </div>
                         </div>
@@ -110,7 +145,7 @@ const Header = () => {
                         <div className="header__info-cart tpcolor__oasis ml-10 tp-cart-toggle">
                            <button onClick={() => setIsCartOpen(true)}>
                               <i><Image src={cart_icon} alt="icon"/></i>
-                              <span>{quantity}</span>
+                              <span>{cartQuantity}</span>
                            </button>
                         </div>
                      </div>
