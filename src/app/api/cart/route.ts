@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const userId = await getAuthUserId();
+    console.log('Clerk user_id:', userId, 'Type:', typeof userId);
     const supabase = createClerkSupabaseClient();
 
     if (!product_id || !quantity) {
