@@ -1,28 +1,7 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 import { LayoutDashboard, ShoppingCart, Package, Users, Warehouse, Settings, Bell } from "lucide-react";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/"); // Not logged in
-  }
-
-  // Check if user is an active admin
-  const { data: admin } = await supabase
-    .from("admin_users")
-    .select("id")
-    .eq("id", user.id)
-    .eq("is_active", true)
-    .single();
-
-  if (!admin) {
-    redirect("/"); // Not an admin
-  }
-
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
