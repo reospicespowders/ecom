@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 // internal
@@ -13,17 +13,23 @@ import CartSidebar from '@/components/sidebar/cart-sidebar';
 import MobileSidebar from '@/components/sidebar/mobile-sidebar';
 import { UserButton, SignedIn, SignedOut, useSession } from "@clerk/nextjs";
 
-const Header = () => {
-  const {sticky} = useSticky();
-  const [cartQuantity, setCartQuantity] = useState(0);
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
-  const [isCartOpen, setIsCartOpen] = React.useState(false);
-  const [isMobileSidebarOpen,setIsMobileSidebarOpen] = React.useState(false);
-  const { session } = useSession();
+interface IProps {
+  style_2?: boolean;
+  style_3?: boolean;
+  home_4?: boolean;
+}
 
-  const fetchCartQuantity = async () => {
+const Header = ({
+  style_2 = false,
+  style_3 = false,
+  home_4 = false,
+}: IProps) => {
+  const [cartQuantity, setCartQuantity] = useState(0);
+  const { session } = useSession();
+  const { sticky } = useSticky();
+
+  const fetchCartQuantity = useCallback(async () => {
     if (!session) return;
-    
     try {
       const token = await session.getToken();
       const response = await fetch('/api/cart', {
@@ -32,28 +38,28 @@ const Header = () => {
       });
       
       if (response.ok) {
-        const cartData = await response.json();
-        const totalQuantity = cartData.reduce((acc: number, item: any) => acc + item.quantity, 0);
-        setCartQuantity(totalQuantity);
+        const data = await response.json();
+        setCartQuantity(data.total_quantity || 0);
       }
     } catch (error) {
-      console.error('Error fetching cart quantity:', error);
+      console.error("Failed to fetch cart quantity", error);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     fetchCartQuantity();
-  }, [session]);
+  }, [session, fetchCartQuantity]);
 
-  // Listen for cart updates
   useEffect(() => {
-    const handleCartUpdate = () => {
-      fetchCartQuantity();
+    window.addEventListener('cartUpdated', fetchCartQuantity);
+    return () => {
+      window.removeEventListener('cartUpdated', fetchCartQuantity);
     };
+  }, [fetchCartQuantity]);
 
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
-  }, [session]);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [isCartOpen, setIsCartOpen] = React.useState(false);
+  const [isMobileSidebarOpen,setIsMobileSidebarOpen] = React.useState(false);
 
   return (
     <>

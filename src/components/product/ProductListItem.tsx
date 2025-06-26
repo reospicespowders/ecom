@@ -4,10 +4,40 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { IProductData } from '@/types/product-d-t';
 import { useSession } from '@clerk/nextjs';
-import { handleAddToCart } from '@/utils/cart';
+import { handleAddToCart, handleToggleWishlist } from '@/utils/cart';
+import { useState, useEffect } from 'react';
 
 const ProductListItem = ({ product }: { product: IProductData }) => {
   const { session } = useSession();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  useEffect(() => {
+    async function checkWishlist() {
+        if (!session) return;
+        const token = await session.getToken();
+        if (!token) return;
+
+        const response = await fetch('/api/wishlist', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+            const wishlist = await response.json();
+            setIsWishlisted(wishlist.some((item: any) => item.product_id === product._id));
+        }
+    }
+    checkWishlist();
+
+    const handleWishlistUpdate = () => checkWishlist();
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, [product._id, session]);
+
+  const handleWishlistToggle = async () => {
+      const success = await handleToggleWishlist(product._id, () => session?.getToken() || Promise.resolve(null), isWishlisted);
+      if (success) {
+          setIsWishlisted(!isWishlisted);
+      }
+  };
   return (
     <div className="product__item-2 product__item-3 d-sm-flex align-items-center mb-40">
       <div className="product__thumb-2 mr-25">
@@ -48,7 +78,7 @@ const ProductListItem = ({ product }: { product: IProductData }) => {
         </div>
         <div className="product-action-2">
           <button onClick={() => handleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null))} className="cart-btn-2" type="button"><i className="fas fa-shopping-cart"></i> Add to Cart</button>
-          <a href="#" className="action-btn-2"><i className="fas fa-heart"></i></a>
+          <a href="#" className="action-btn-2" onClick={handleWishlistToggle}><i className={`fas fa-heart ${isWishlisted ? 'active' : ''}`}></i></a>
           <a href="#" className="action-btn-2"><i className="fas fa-layer-group"></i></a>
         </div>
       </div>

@@ -1,36 +1,19 @@
 "use client";
-import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
-import { ToastContainer } from "react-toastify";
-import { useAppDispatch } from "@/redux/hook";
-import { getCompareProducts } from "@/redux/features/compare";
-import { getWishlistProducts } from "@/redux/features/wishlist";
-import { getCartProducts, initialOrderQuantity } from "@/redux/features/cart";
-import ProductModal from "@/components/common/modal/product-modal";
-import BackToTop from "@/components/common/back-to-top";
+import React, { useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-if (typeof window !== "undefined") {
-  require("bootstrap/dist/js/bootstrap");
-}
+import BackToTop from '@/components/common/back-to-top';
 
-const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-
+const Wrapper = ({children}:{children:React.ReactNode}) => {
   useEffect(() => {
-    dispatch(initialOrderQuantity());
-    dispatch(getCartProducts());
-    dispatch(getWishlistProducts());
-    dispatch(getCompareProducts());
-  }, [router, dispatch]);
-
-  
+    // any initialization logic can go here
+  },[])
   return (
     <>
       {children}
-      <ProductModal/>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <BackToTop/>
-      <ToastContainer />
     </>
   );
 };

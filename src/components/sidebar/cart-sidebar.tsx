@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from '@clerk/nextjs';
@@ -29,7 +29,7 @@ const CartSidebar = ({isCartSidebarOpen,setIsCartSidebarOpen}:IProps) => {
   const [total, setTotal] = useState(0);
   const { session } = useSession();
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     if (!session) return;
     
     try {
@@ -64,11 +64,13 @@ const CartSidebar = ({isCartSidebarOpen,setIsCartSidebarOpen}:IProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
-    fetchCartItems();
-  }, [session, isCartSidebarOpen]);
+    if (isCartSidebarOpen) {
+      fetchCartItems();
+    }
+  }, [session, isCartSidebarOpen, fetchCartItems]);
 
   const handleRemoveItem = async (itemId: number) => {
     if (!session) return;

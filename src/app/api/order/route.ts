@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClerkSupabaseClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { getAuthUserId } from '@/utils/auth';
 import { getProductById } from '@/lib/sanity.fetch';
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await getAuthUserId();
-    const supabase = createClerkSupabaseClient();
+    const supabase = createClient();
     const { orderDetails } = await request.json();
 
     const { data: cartItems, error: cartError } = await supabase

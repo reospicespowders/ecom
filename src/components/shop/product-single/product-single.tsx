@@ -11,7 +11,7 @@ import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { useSession } from '@clerk/nextjs';
-import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
+import { handleAddToCart as sharedHandleAddToCart, handleToggleWishlist } from '@/utils/cart';
 
 // prop type
 type IProps = {
@@ -31,21 +31,44 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
   }
   const [addingToCart, setAddingToCart] = useState(false);
   const [isCompareAdd, setIsCompareAdd] = useState(false);
-  const [isWishlistAdd, setIsWishlistAdd] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const { session } = useSession();
-  const { wishlist } = useAppSelector((state) => state.wishlist);
   const { compare_products } = useAppSelector((state) => state.compare);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    setIsWishlistAdd(wishlist.some((i) => i.id === product.id));
+    async function checkWishlist() {
+      if (!session) return;
+      const token = await session.getToken();
+      if (!token) return;
+
+      const response = await fetch('/api/wishlist', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const wishlist = await response.json();
+        setIsWishlisted(wishlist.some((item: any) => item.product_id === product._id));
+      }
+    }
+    checkWishlist();
     setIsCompareAdd(compare_products.some((i) => i.id === product.id));
-  }, [compare_products, product.id, wishlist]);
+
+    const handleWishlistUpdate = () => checkWishlist();
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, [compare_products, product.id, product._id, session]);
 
   const handleProductModal = (prd: IProductData) => {
     dispatch(handleModalProduct({ product: prd }))
     dispatch(handleOpenModal())
   }
+
+  const handleWishlistToggle = async () => {
+    const success = await handleToggleWishlist(product._id, () => session?.getToken() || Promise.resolve(null), isWishlisted);
+    if (success) {
+      setIsWishlisted(!isWishlisted);
+    }
+  };
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
@@ -76,8 +99,8 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
           )}
         </div>
         <div className="tpproduct__shopping">
-          <button className="tpproduct__shopping-btn" onClick={() => dispatch(add_to_wishlist(product))}>
-            <i className={`icon-heart ${isWishlistAdd ? 'active' : ''}`}></i>
+          <button className="tpproduct__shopping-btn" onClick={handleWishlistToggle}>
+            <i className={`icon-heart ${isWishlisted ? 'active' : ''}`}></i>
           </button>
           <button className="tpproduct__shopping-btn" onClick={() => dispatch(add_to_compare(product))}>
             <i className={`icon-layers ${isCompareAdd ? 'active' : ''}`}></i>

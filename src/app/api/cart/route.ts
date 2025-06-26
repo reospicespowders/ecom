@@ -1,5 +1,5 @@
-import { createClerkSupabaseClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
 import { getAuthUserId } from '@/utils/auth';
 import { auth } from '@clerk/nextjs/server';
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getAuthUserId();
     console.log('Clerk user_id:', userId, 'Type:', typeof userId);
-    const supabase = createClerkSupabaseClient();
+    const supabase = createClient();
 
     if (!product_id || !quantity) {
       return NextResponse.json({ error: 'Missing product_id or quantity' }, { status: 400 });
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     console.log('API /api/cart called');
     const userId = await getAuthUserId();
     console.log('userId:', userId);
-    const supabase = createClerkSupabaseClient();
+    const supabase = createClient();
     const { data: cartItems, error } = await supabase
       .from('carts')
       .select('*')
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const userId = await getAuthUserId();
-    const supabase = createClerkSupabaseClient();
+    const supabase = createClient();
     const { error } = await supabase
       .from('carts')
       .delete()

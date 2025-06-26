@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import CartItem from './cart-item';
 import { IProductData } from '@/types/product-d-t';
@@ -12,7 +12,7 @@ const CartArea = () => {
   const [total, setTotal] = useState(0);
   const { session } = useSession();
 
-  async function fetchCartDetails() {
+  const fetchCartDetails = useCallback(async () => {
     try {
       const token = await session?.getToken();
       const response = await fetch('/api/cart', {
@@ -35,11 +35,11 @@ const CartArea = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [session]);
 
   useEffect(() => {
     fetchCartDetails();
-  }, []);
+  }, [fetchCartDetails]);
   
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => {

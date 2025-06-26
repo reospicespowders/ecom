@@ -12,6 +12,8 @@ import { PortableText } from '@portabletext/react';
 import Link from "next/link";
 import { getProductsByCategory } from "@/lib/sanity.fetch";
 import ProductSmSingle from "@/components/product/product-single/product-sm-single";
+import { useSession } from "@clerk/nextjs";
+import { handleToggleWishlist } from "@/utils/cart";
 
 interface Props {
   product: IProductData;
@@ -25,6 +27,8 @@ const ProductDetails = ({ product }: Props) => {
   const [imgLoading, setImgLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { session } = useSession();
   const dispatch = useAppDispatch();
 
   // Helper for blur placeholder (optional: you can generate a static blurDataURL or use a tiny image)
@@ -32,6 +36,20 @@ const ProductDetails = ({ product }: Props) => {
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWUiLz48L3N2Zz4=";
 
   useEffect(() => {
+    async function checkWishlist() {
+      if (!session) return;
+      const token = await session.getToken();
+      if (!token) return;
+
+      const response = await fetch('/api/wishlist', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const wishlist = await response.json();
+        setIsWishlisted(wishlist.some((item: any) => item.product_id === product._id));
+      }
+    }
+
     const fetchRelated = async () => {
       if (product.category?.slug?.current) {
         const fetchedProducts = await getProductsByCategory(product.category.slug.current);
@@ -40,11 +58,23 @@ const ProductDetails = ({ product }: Props) => {
       }
     };
     fetchRelated();
-  }, [product.category?.slug, product._id]);
+    checkWishlist();
+
+    const handleWishlistUpdate = () => checkWishlist();
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, [product.category?.slug, product._id, session]);
 
   const handleQuantityChange = (value: number) => {
     if (value >= 1 && value <= product.quantity) {
       setQuantity(value);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    const success = await handleToggleWishlist(product._id, () => session?.getToken() || Promise.resolve(null), isWishlisted);
+    if (success) {
+      setIsWishlisted(!isWishlisted);
     }
   };
 
@@ -212,8 +242,8 @@ const ProductDetails = ({ product }: Props) => {
               >
                 {addingToCart ? 'Adding...' : 'Add to Cart'}
               </button>
-              <a className="tp-btn-wishlist pointer" onClick={() => dispatch(add_to_wishlist(product))}>
-                <i className="icon-heart"></i>
+              <a className="tp-btn-wishlist pointer" onClick={handleWishlistToggle}>
+                <i className={`icon-heart ${isWishlisted ? "active" : ""}`}></i>
               </a>
               <a className="tp-btn-compare pointer" onClick={() => dispatch(add_to_compare(product))}>
                 <i className="icon-layers"></i>

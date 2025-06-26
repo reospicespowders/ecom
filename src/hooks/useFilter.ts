@@ -83,7 +83,7 @@ export function useProductFilter(initialCategorySlug?: string) {
     currentFilteredData = currentFilteredData.filter((item) => titleMatch(item));
 
     return currentFilteredData;
-  }, [products, category, subCategory, colors, brand, priceValue, ratingValue, searchText]);
+  }, [products, category, subCategory, colors, brand, priceValue, ratingValue, searchText, initialCategorySlug]);
 
   const handleSorting = (item: { value: string; label: string }) => {
     let sortedProducts = [...filteredProducts]; // Sort the currently filtered products

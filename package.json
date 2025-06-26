@@ -56,6 +56,14 @@
     "eslint": "^8",
     "eslint-config-next": "14.0.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@types/swiper": "^6.0.0",
+    "autoprefixer": "^10.4.19",
+    "axios": "^1.6.8",
+    "eslint-plugin-react": "^7.34.1",
+    "postcss": "^8.4.38",
+    "react-toastify": "^10.0.5",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5"
   }
 }

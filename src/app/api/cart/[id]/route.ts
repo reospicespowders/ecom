@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClerkSupabaseClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { getAuthUserId } from '@/utils/auth'
 
 console.error('test2');
@@ -10,10 +10,13 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    await getAuthUserId() // just to check auth
-    const supabase = createClerkSupabaseClient()
-    const { quantity } = await request.json()
-    const cartItemId = params.id
+    const userId = await getAuthUserId();
+    if (!userId) return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+
+    const supabase = createClient();
+    const body = await request.json();
+    const { quantity } = body;
+    const cartItemId = params.id;
 
     if (!quantity || quantity <= 0) {
       return NextResponse.json({ error: 'Quantity must be a positive number' }, { status: 400 })
@@ -37,11 +40,8 @@ export async function PATCH(
 
     return NextResponse.json(data)
   } catch (error) {
-    if (error instanceof Error && error.message === "User not authenticated") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('An unexpected error occurred:', error)
-    return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 })
+    console.error('Error updating cart item:', error)
+    return NextResponse.json({ error: 'Failed to update item' }, { status: 500 })
   }
 }
 
@@ -53,9 +53,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await getAuthUserId() // just to check auth
-    const supabase = createClerkSupabaseClient()
-    const cartItemId = params.id
+    const userId = await getAuthUserId();
+    if (!userId) return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+
+    const supabase = createClient();
+    const cartItemId = params.id;
 
     const { error } = await supabase
       .from('carts')
@@ -69,9 +71,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    if (error instanceof Error && error.message === "User not authenticated") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     console.error('An unexpected error occurred:', error)
     return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 })
   }

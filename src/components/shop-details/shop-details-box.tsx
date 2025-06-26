@@ -1,5 +1,5 @@
 'use client';
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IProductData } from "@/types/product-d-t";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
@@ -7,6 +7,7 @@ import { add_cart_product, decrement, increment } from "@/redux/features/cart";
 import { discountPercentage } from "@/utils/utils";
 import { handleAddToCart } from '@/utils/cart';
 import { useSession } from '@clerk/nextjs';
+import { handleToggleWishlist } from "@/utils/cart";
 
 // prop type
 type IProps = {
@@ -18,9 +19,31 @@ type IProps = {
 const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
   const {gallery,image,price,productInfoList,quantity,color,tags,category} = product;
   const [activeImg, setActiveImg] = React.useState(image);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const { orderQuantity } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const { session } = useSession();
+
+  useEffect(() => {
+    async function checkWishlist() {
+      if (!session) return;
+      const token = await session.getToken();
+      if (!token) return;
+
+      const response = await fetch('/api/wishlist', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const wishlist = await response.json();
+        setIsWishlisted(wishlist.some((item: any) => item.product_id === product._id));
+      }
+    }
+    checkWishlist();
+    
+    const handleWishlistUpdate = () => checkWishlist();
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, [product._id, session]);
 
   let discount = 0;
   if (product.sale_price) {
@@ -31,6 +54,14 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
   const handleActiveImg = (img: string) => {
     setActiveImg(img);
   };
+
+  const handleWishlistToggle = async () => {
+    const success = await handleToggleWishlist(product._id, () => session?.getToken() || Promise.resolve(null), isWishlisted);
+    if (success) {
+      setIsWishlisted(!isWishlisted);
+    }
+  };
+
   return (
     <>
       <div className="tpdetails__box">
@@ -174,8 +205,8 @@ const ShopDetailsBox = ({ product, navStyle, topThumb }: IProps) => {
                 </div>
                 <ul className="product__details-check">
                   <li>
-                    <a href="#">
-                      <i className="icon-heart icons"></i> add to wishlist
+                    <a className="pointer" onClick={handleWishlistToggle}>
+                      <i className={`icon-heart icons ${isWishlisted ? "active" : ""}`}></i> add to wishlist
                     </a>
                   </li>
                   <li>

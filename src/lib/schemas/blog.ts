@@ -1,4 +1,4 @@
-export default {
+const blog = {
   name: 'blog',
   title: 'Blog',
   type: 'document',
@@ -18,4 +18,6 @@ export default {
       validation: (Rule: any) => Rule.required(),
     },
   ],
-}; 
+}
+
+export default blog; 
