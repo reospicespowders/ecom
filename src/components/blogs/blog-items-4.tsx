@@ -5,7 +5,14 @@ import blog_data from '@/data/blog-data';
 import BlogSingle from './single/blog-single';
 import usePagination from '@/hooks/use-pagination';
 import { IBlogData } from '@/types/blog-d-t';
-import Pagination from '../ui/pagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "../ui/pagination";
 
 // prop type 
 type IProps = {
@@ -34,7 +41,25 @@ const BlogItemsFour = ({left_side}: IProps) => {
                       <div className="col-lg-12">
                          <div className="basic-pagination text-center mb-80">
                             <nav>
-                               <Pagination handlePageClick={handlePageClick} pageCount={pageCount} />
+                               <Pagination>
+                                 <PaginationContent>
+                                   <PaginationItem>
+                                     <PaginationPrevious href="#" />
+                                   </PaginationItem>
+                                   <PaginationItem>
+                                     <PaginationLink href="#" isActive>1</PaginationLink>
+                                   </PaginationItem>
+                                   <PaginationItem>
+                                     <PaginationLink href="#">2</PaginationLink>
+                                   </PaginationItem>
+                                   <PaginationItem>
+                                     <PaginationLink href="#">3</PaginationLink>
+                                   </PaginationItem>
+                                   <PaginationItem>
+                                     <PaginationNext href="#" />
+                                   </PaginationItem>
+                                 </PaginationContent>
+                               </Pagination>
                              </nav>
                          </div>
                       </div>

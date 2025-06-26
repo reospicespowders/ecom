@@ -8,7 +8,14 @@ import usePagination from '@/hooks/use-pagination';
 import CategoryArea from '../category/category-area';
 import NiceSelect from '../ui/nice-select';
 import ShopItems from '../shop/shop-items';
-import Pagination from '../ui/pagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "../ui/pagination";
 
 // tabs
 const col_tabs = [
@@ -132,10 +139,25 @@ const SearchArea = () => {
               {/* shop items end */}
               <div className="basic-pagination text-center mt-35">
                 <nav>
-                  <Pagination
-                    handlePageClick={handlePageClick}
-                    pageCount={pageCount}
-                  />
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious href="#" />
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink href="#" isActive>1</PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink href="#">2</PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink href="#">3</PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationNext href="#" />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </nav>
               </div>
             </div>

@@ -3,7 +3,14 @@ import React, { useState } from "react";
 import { FourColDots, ListDots, ThreeColDots } from "../svg";
 import { IProductData } from "@/types/product-d-t";
 import usePagination from "@/hooks/use-pagination";
-import Pagination from "../ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "../ui/pagination";
 import NiceSelect from "../ui/nice-select";
 import ShopItems from "./shop-items";
 import { useProductFilter } from "@/hooks/useFilter";
@@ -92,10 +99,25 @@ const ShopAreaTwo = ({list_style=false}:IProps) => {
                 {/* shop items end */}
                 <div className="basic-pagination text-center mt-35">
                   <nav>
-                    <Pagination
-                      handlePageClick={handlePageClick}
-                      pageCount={pageCount}
-                    />
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious href="#" />
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationLink href="#" isActive>1</PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationLink href="#">2</PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationLink href="#">3</PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationNext href="#" />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </nav>
                 </div>
               </div>
