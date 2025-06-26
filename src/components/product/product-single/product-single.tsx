@@ -11,8 +11,9 @@ import { handleModalProduct, handleOpenModal } from "@/redux/features/utility";
 import { add_to_compare } from "@/redux/features/compare";
 import { add_to_wishlist } from "@/redux/features/wishlist";
 import { PortableText } from '@portabletext/react'; // Ensure this import is present if not already there
-import { handleAddToCart as sharedHandleAddToCart, handleToggleWishlist } from '@/utils/cart';
+import { handleAddToCart as sharedHandleAddToCart } from '@/utils/cart';
 import { useSession } from "@clerk/nextjs";
+import { handleToggleWishlist } from "@/utils/cart";
 
 // prop type
 type IProps = {
@@ -86,8 +87,9 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
   };
 
   const handleAddToCart = async () => {
+    console.log('Add to Cart button clicked', product._id, quantityCount);
     setAddingToCart(true);
-    await sharedHandleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null));
+    await sharedHandleAddToCart(product._id, quantityCount, () => Promise.resolve(null));
     setAddingToCart(false);
   };
 
@@ -186,14 +188,14 @@ const ProductSingle = ({product,progress,cls,offer_style,price_space}:IProps) =>
       </div>
       <div className="tpproduct__hover-text">
         <div className="tpproduct__hover-btn d-flex justify-content-center mb-10">
-            <button
+            <a
               onClick={handleAddToCart}
               className="tp-btn-2 pointer"
               style={{ cursor: addingToCart ? 'not-allowed' : 'pointer' }}
-              disabled={addingToCart}
+              aria-disabled={addingToCart}
             >
               {addingToCart ? 'Adding...' : 'Add to Cart'}
-            </button>
+            </a>
         </div>
         <div className="tpproduct__descrip">
           <ul>
