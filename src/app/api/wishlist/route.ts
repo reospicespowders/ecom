@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     .select('*');
 
   if (error) {
-    console.error('Error fetching wishlist:', error);
-    return NextResponse.json({ error: 'Failed to fetch wishlist' }, { status: 500 });
+    console.error('Supabase error:', error);
+    return NextResponse.json({ error: 'Failed to fetch wishlist', details: error.message }, { status: 500 });
   }
 
   return NextResponse.json(data);
@@ -39,15 +39,12 @@ export async function POST(request: NextRequest) {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('wishlist')
-    .insert({ product_id })
+    .insert({ user_id: userId, product_id })
     .select();
 
   if (error) {
-    if (error.code === '23505') { // unique_violation
-      return NextResponse.json({ message: 'Product already in wishlist' }, { status: 409 });
-    }
     console.error('Error adding to wishlist:', error);
-    return NextResponse.json({ error: 'Failed to add to wishlist' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to add to wishlist', details: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ message: 'Product added to wishlist', data: data[0] }, { status: 201 });
