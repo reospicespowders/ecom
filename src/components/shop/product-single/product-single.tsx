@@ -108,6 +108,13 @@ const ProductSingle = ({ product, progress, cls, offer_style, price_space }: IPr
           <button className="tpproduct__shopping-btn" onClick={() => handleProductModal(product)}>
             <i className="icon-eye"></i>
           </button>
+          <button
+            className="tpproduct__shopping-btn"
+            onClick={() => sharedHandleAddToCart(product._id, 1, () => session?.getToken() ?? Promise.resolve(null))}
+            disabled={addingToCart}
+          >
+            <i className="icon-shopping-cart"></i>
+          </button>
         </div>
       </div>
       <div className="tpproduct__content">
