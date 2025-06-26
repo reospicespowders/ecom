@@ -12,13 +12,10 @@ export const createClient = () => {
       global: {
         fetch: async (url, options = {}) => {
           const { getToken } = await auth();
-          const supabaseToken = await getToken({ template: 'supabase' });
+          const supabaseToken = await getToken();
 
           const headers = new Headers(options?.headers);
-          
-          if (supabaseToken) {
-            headers.set('Authorization', `Bearer ${supabaseToken}`);
-          }
+          headers.set('Authorization', `Bearer ${supabaseToken}`);
           
           return fetch(url as RequestInfo, {
             ...options,

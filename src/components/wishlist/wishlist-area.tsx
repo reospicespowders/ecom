@@ -2,11 +2,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { IProductData } from "@/types/product-d-t";
-import Image from "next/image";
+import { getProductById } from "@/lib/sanity.fetch";
 import { useSession } from "@clerk/nextjs";
-import { handleAddToCart, handleToggleWishlist } from "@/utils/cart";
-import { toast } from "react-toastify";
+import Image from "next/image";
 import empty_wishlist_img from "@/assets/img/cart/empty-cart.png";
+import { handleToggleWishlist } from "@/utils/cart";
+import { handleAddToCart } from "@/utils/cart";
 
 const WishlistArea = () => {
   const [wishlistItems, setWishlistItems] = useState<IProductData[]>([]);
@@ -18,27 +19,25 @@ const WishlistArea = () => {
       setLoading(false);
       return;
     }
+    setLoading(true);
     try {
-      setLoading(true);
       const token = await session.getToken();
-      if (!token) {
-        setLoading(false);
-        return;
-      }
       const response = await fetch('/api/wishlist', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch wishlist items' }));
-        throw new Error(errorData.error || 'Failed to fetch wishlist items');
+        throw new Error('Failed to fetch wishlist items');
       }
-      let data = await response.json();
-      data = data.filter(Boolean);
+      const wishlistData = await response.json();
 
-      setWishlistItems(data);
-    } catch (error: any) {
-      console.error(error.message);
-      toast.error(error.message);
+      const productDetailsPromises = wishlistData.map(async (item: any) => {
+        return await getProductById(item.product_id);
+      });
+
+      const resolvedProducts = await Promise.all(productDetailsPromises);
+      setWishlistItems(resolvedProducts.filter(p => p)); // Filter out any null products
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
