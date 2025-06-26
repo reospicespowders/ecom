@@ -3,16 +3,17 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  // Check for user session first
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // RLS will handle user-specific data fetching
   const supabase = createClient();
   const { data, error } = await supabase
     .from('wishlist')
-    .select('product_id')
-    .eq('user_id', userId);
+    .select('*');
 
   if (error) {
     console.error('Error fetching wishlist:', error);
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Check for user session first
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,11 +34,12 @@ export async function POST(request: NextRequest) {
   if (!product_id) {
     return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
   }
-
+  
+  // The user_id is now handled by RLS policy through the JWT
   const supabase = createClient();
   const { data, error } = await supabase
     .from('wishlist')
-    .insert({ user_id: userId, product_id })
+    .insert({ product_id })
     .select();
 
   if (error) {

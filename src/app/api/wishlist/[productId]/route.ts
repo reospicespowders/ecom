@@ -6,22 +6,18 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { productId: string } }
 ) {
+  // Check for user session first
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const productId = params.productId;
-  if (!productId) {
-    return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
-  }
-
+  // RLS will ensure the user can only delete their own wishlist items
   const supabase = createClient();
   const { error } = await supabase
     .from('wishlist')
     .delete()
-    .eq('user_id', userId)
-    .eq('product_id', productId);
+    .eq('product_id', params.productId);
 
   if (error) {
     console.error('Error removing from wishlist:', error);
