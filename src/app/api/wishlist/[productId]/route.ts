@@ -18,11 +18,11 @@ export async function DELETE(
     .from('wishlist')
     .delete()
     .eq('product_id', params.productId)
-    .eq('customer_id', userId);
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Error removing from wishlist:', error);
-    return NextResponse.json({ error: 'Failed to remove from wishlist' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to remove from wishlist', details: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ message: 'Product removed from wishlist' });
