@@ -62,43 +62,50 @@ type CustomerInteraction = {
 };
 
 // Get customer profile by Clerk user ID
-export async function getCustomerProfile(supabase: any, clerkUserId: string): Promise<Customer | null> {
+export async function getCustomerProfile(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from('customers')
     .select('*')
-    .eq('clerk_user_id', clerkUserId)
-    .single();
+    .eq('clerk_user_id', userId)
+    .maybeSingle(); // allows null if not found
   if (error) throw error;
   return data;
 }
 
 // Update customer profile by Clerk user ID
-export async function updateCustomerProfile(supabase: any, clerkUserId: string, updates: Partial<Customer>): Promise<Customer | null> {
+export async function updateCustomerProfile(
+  supabase: any,
+  userId: string,
+  updates: Partial<any>
+) {
+  // Check if customer exists
+  const customer = await getCustomerProfile(supabase, userId);
+  if (!customer) throw new Error('Customer not found');
   const { data, error } = await supabase
     .from('customers')
-    .update(updates)
-    .eq('clerk_user_id', clerkUserId)
-    .select()
-    .single();
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('clerk_user_id', userId)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-// Create or update (upsert) customer
-export async function createOrUpdateCustomer(supabase: any, customer: Customer): Promise<Customer | null> {
-  const { data, error } = await supabase
+// Create or update (upsert) customer by Clerk user ID
+export async function createOrUpdateCustomer(
+  supabase: any,
+  data: any // should include clerk_user_id
+) {
+  const { data: upserted, error } = await supabase
     .from('customers')
-    .upsert(customer, { onConflict: 'clerk_user_id' })
-    .select()
-    .single();
+    .upsert({ ...data, updated_at: new Date().toISOString() }, { onConflict: 'clerk_user_id' })
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return upserted;
 }
 
-// Get customer interactions
-export async function getCustomerInteractions(supabase: any, clerkUserId: string): Promise<CustomerInteraction[]> {
-  // First, get the customer id
-  const customer = await getCustomerProfile(supabase, clerkUserId);
+// Get customer interactions (assumes customer_interactions table exists)
+export async function getCustomerInteractions(supabase: any, userId: string) {
+  const customer = await getCustomerProfile(supabase, userId);
   if (!customer) return [];
   const { data, error } = await supabase
     .from('customer_interactions')
@@ -106,13 +113,16 @@ export async function getCustomerInteractions(supabase: any, clerkUserId: string
     .eq('customer_id', customer.id)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return data;
 }
 
 // Add customer interaction
-export async function addCustomerInteraction(supabase: any, clerkUserId: string, interaction: Omit<CustomerInteraction, 'customer_id'>): Promise<CustomerInteraction | null> {
-  // First, get the customer id
-  const customer = await getCustomerProfile(supabase, clerkUserId);
+export async function addCustomerInteraction(
+  supabase: any,
+  userId: string,
+  interaction: any // { type, details, ... }
+) {
+  const customer = await getCustomerProfile(supabase, userId);
   if (!customer) throw new Error('Customer not found');
   const { data, error } = await supabase
     .from('customer_interactions')
