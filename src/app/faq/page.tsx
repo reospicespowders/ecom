@@ -7,7 +7,7 @@ import BreadcrumbArea from "@/components/breadcrumb/breadcrumb-area";
 import FaqArea from "@/components/faq/faq-area";
 
 export const metadata: Metadata = {
-  title: "Faq - Orfarm",
+  title: "Faq - REO spices and powders",
 };
 
 export default function FaqPage() {

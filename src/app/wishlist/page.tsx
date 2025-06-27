@@ -6,7 +6,7 @@ import BreadcrumbTwo from "@/components/breadcrumb/breadcrumb-2";
 import WishlistArea from "@/components/wishlist/wishlist-area";
 
 export const metadata: Metadata = {
-  title: "Wishlist - Orfarm",
+  title: "Wishlist - REO spices and powders",
 };
 
 export default function WishlistPage() {

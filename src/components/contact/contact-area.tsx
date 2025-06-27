@@ -28,7 +28,7 @@ function ContactItem ({img,title,add,phone,email}:IProps) {
                       <a href="tel:012345678">Phone: {phone}</a>
                     </li>
                     <li>
-                      <a href="mailto:orfarm@google.com">Email: {email}</a>
+                      <a href="mailto:REO spices and powders@google.com">Email: {email}</a>
                     </li>
                 </ul>
               </div>
@@ -47,17 +47,17 @@ const ContactArea = () => {
                 <div className="tpcontact-inner text-center mt-20 mb-40">
                   <div className="tpcontact-inner-text">
                       <h5 className="tpcontact-inner-sub-title">Contact us</h5>
-                      <h5 className="tpcontact-inner-title mb-20">Looking For Orfarm?</h5>
+                      <h5 className="tpcontact-inner-title mb-20">Looking For REO spices and powders?</h5>
                       <p>The liber tempor cum soluta nobis eleifend option congue doming quod mazim.</p>
                   </div>
                 </div>
             </div>
           </div>
           <div className="row">
-            <ContactItem img="1" title="Rue Pelleport - Paris" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7890" email="Orfarm@google.com"/>
-            <ContactItem img="2" title="Prospect - New York" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 8899" email="Orfarm@google.com"/>
-            <ContactItem img="3" title="Budapest - Hungary" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7755" email="Orfarm@google.com"/>
-            <ContactItem img="4" title="Kastrup - Denmark" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 5544" email="Orfarm@google.com"/>
+            <ContactItem img="1" title="Rue Pelleport - Paris" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7890" email="REO spices and powders@google.com"/>
+            <ContactItem img="2" title="Prospect - New York" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 8899" email="REO spices and powders@google.com"/>
+            <ContactItem img="3" title="Budapest - Hungary" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7755" email="REO spices and powders@google.com"/>
+            <ContactItem img="4" title="Kastrup - Denmark" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 5544" email="REO spices and powders@google.com"/>
           </div>
       </div>
     </section>

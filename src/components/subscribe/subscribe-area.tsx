@@ -17,7 +17,7 @@ const SubscribeArea = ({cls=''}: IProps) => {
                 <div className="col-lg-6 col-md-12">
                   <div className="tpsubscribe__content">
                     <p>
-                      Subscribe to the Orfarm mailing list to receive updates{" "}
+                      Subscribe to the REO spices and powders mailing list to receive updates{" "}
                       <br />
                       on new arrivals & other information.
                     </p>

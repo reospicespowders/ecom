@@ -7,7 +7,7 @@ import CartArea from "@/components/cart/cart-area";
 import Footer from "@/layouts/footer/footer";
 
 export const metadata: Metadata = {
-  title: "Cart - Orfarm",
+  title: "Cart - REO spices and powders",
 };
 
 export default function CartPage() {

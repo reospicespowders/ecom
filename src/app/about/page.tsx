@@ -12,7 +12,7 @@ import Footer from "@/layouts/footer/footer";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "About - Orfarm",
+  title: "About - REO spices and powders",
 };
 
 export default function AboutPage() {
@@ -32,7 +32,7 @@ export default function AboutPage() {
             <div className="row">
               <div className="col-lg-12">
                 <div className="tpabout__inner text-center">
-                  <h5 className="tpabout__inner-sub mb-15">About for Orfarm</h5>
+                  <h5 className="tpabout__inner-sub mb-15">About for REO spices and powders</h5>
                   <h3 className="tpabout__inner-title mb-35">Unique People</h3>
                   <p>
                     Over 25 years of experience, we have crafted thousands of

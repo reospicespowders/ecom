@@ -7,7 +7,7 @@ import BlogSlider from "@/components/blogs/blog-slider";
 import BlogItemsThree from "@/components/blogs/blog-items-3";
 
 export const metadata: Metadata = {
-  title: "Blog - Orfarm",
+  title: "Blog - REO spices and powders",
 };
 
 export default function BlogPage() {

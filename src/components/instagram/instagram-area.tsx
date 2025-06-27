@@ -53,9 +53,9 @@ const InstagramArea = () => {
         <div className="row">
           <div className="col-lg-12 text-center">
             <div className="tpsection mb-35">
-              <h4 className="tpsection__title">@Orfarm</h4>
+              <h4 className="tpsection__title">@REO spices and powders</h4>
               <p>
-                Tag <Link href="/">@orfarm</Link> in your Instagram photos
+                Tag <Link href="/">@REO spices and powders</Link> in your Instagram photos
                 for a chance to be featured here. <br /> Find more inspiration
                 on our Instagram.
               </p>

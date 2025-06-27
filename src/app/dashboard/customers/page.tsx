@@ -10,7 +10,7 @@ export default function CustomersDashboard() {
       <div className="tw-flex tw-flex-col md:tw-flex-row tw-items-start md:tw-items-center tw-justify-between tw-gap-4 tw-mb-6">
         <div>
           <h1 className="tw-text-3xl tw-font-bold tw-text-gray-900">Customers</h1>
-          <div className="tw-text-muted-foreground tw-text-base">Manage your store's customers</div>
+          <div className="tw-text-muted-foreground tw-text-base">Manage your store&apos;s customers</div>
         </div>
         <div className="tw-flex tw-gap-2 tw-mt-2 md:tw-mt-0">
           <Input className="tw-w-56" placeholder="Search customers..." />

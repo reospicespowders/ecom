@@ -48,6 +48,7 @@ import {
   ShoppingBag,
   AlertCircle
 } from "lucide-react";
+import { useCustomerProfile } from "@/hooks/useCustomer";
 
 // Enhanced Customer Interface
 interface Customer {
@@ -175,39 +176,38 @@ export default function CustomersTable() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
 
+  // Fetch real customer data
+  const { customer, isLoading, isError } = useCustomerProfile();
+
+  // Use real data if available, otherwise fallback to mock
+  const customersData = customer ? [customer] : mockCustomers;
+
   // Memoized filtered and sorted data
   const filteredAndSortedCustomers = useMemo(() => {
-    let filtered = mockCustomers.filter((customer) => {
+    let filtered = customersData.filter((customer) => {
       const matchesSearch = !search || 
         customer.name.toLowerCase().includes(search.toLowerCase()) ||
         customer.email.toLowerCase().includes(search.toLowerCase()) ||
         customer.id.toLowerCase().includes(search.toLowerCase());
-      
       const matchesStatus = !statusFilter || customer.status === statusFilter;
-      
       return matchesSearch && matchesStatus;
     });
-
     // Sorting
     filtered.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
-      
       if (typeof aValue === "string" && typeof bValue === "string") {
         return sortDirection === "asc" 
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-      
       if (typeof aValue === "number" && typeof bValue === "number") {
         return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
       }
-      
       return 0;
     });
-
     return filtered;
-  }, [search, statusFilter, sortField, sortDirection]);
+  }, [customersData, search, statusFilter, sortField, sortDirection]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedCustomers.length / ITEMS_PER_PAGE);
@@ -246,7 +246,7 @@ export default function CustomersTable() {
 
   const handleExport = useCallback(() => {
     const dataToExport = selected.length > 0 
-      ? mockCustomers.filter(c => selected.includes(c.id))
+      ? customersData.filter(c => selected.includes(c.id))
       : filteredAndSortedCustomers;
     
     console.log("Exporting customers:", dataToExport);
@@ -267,8 +267,13 @@ export default function CustomersTable() {
   }, []);
 
   // Get customer initials for avatar
-  const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase();
+  const getInitials = (name?: string) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map(n => n[0] || "")
+      .join("")
+      .toUpperCase();
   };
 
   // Format date
@@ -328,107 +333,119 @@ export default function CustomersTable() {
 
       {/* Table */}
       <div className="card-modern tw-shadow-lg tw-rounded-xl tw-bg-white tw-p-0 tw-overflow-x-auto">
-        <Table className="tw-min-w-full tw-border-separate tw-border-spacing-0">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="tw-w-12 tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm"></TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Customer</TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Registration</TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Orders</TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Total Spent</TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Status</TableHead>
-              <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm tw-text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedCustomers.length === 0 ? (
+        {isLoading ? (
+          <div className="tw-p-8 tw-text-center">Loading customers...</div>
+        ) : isError ? (
+          <div className="tw-p-8 tw-text-center tw-text-red-500">Failed to load customers.</div>
+        ) : (
+          <Table className="tw-min-w-full tw-border-separate tw-border-spacing-0">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="tw-text-center tw-py-8">
-                  <div className="tw-flex tw-flex-col tw-items-center tw-gap-2">
-                    <AlertCircle className="tw-h-8 tw-w-8 tw-text-gray-400" />
-                    <p className="tw-text-gray-500">No customers found</p>
-                    {(search || statusFilter) && (
-                      <Button variant="outline" size="sm" onClick={resetFilters}>
-                        Clear filters
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
+                <TableHead className="tw-w-12 tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm"></TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Customer</TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Registration</TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Orders</TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Total Spent</TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Status</TableHead>
+                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm tw-text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedCustomers.map((customer, index) => (
-                <TableRow key={customer.id} className={`${index % 2 === 0 ? 'tw-bg-white' : 'tw-bg-[var(--color-neutral-100)]'} hover:tw-shadow-lg hover:tw-scale-[1.01] tw-transition tw-rounded-lg`}>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                    <div className="tw-h-7 tw-w-7 tw-rounded-full tw-bg-gradient-to-br tw-from-[var(--color-primary-100)] tw-to-[var(--color-primary-500)] tw-flex tw-items-center tw-justify-center tw-font-bold tw-text-[var(--color-primary-700)]">
-                      {getInitials(customer.name)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                    <div className="tw-font-semibold tw-text-[var(--color-primary-900)]">{customer.name}</div>
-                    <div className="tw-text-sm tw-text-gray-500">{customer.email}</div>
-                    <div className="tw-text-xs tw-text-gray-400 tw-flex tw-items-center"><Phone className="tw-h-3 tw-w-3 tw-mr-1" />{customer.phone}</div>
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                    <div className="tw-flex tw-items-center tw-gap-1 tw-text-sm">
-                      <Calendar className="tw-h-3 tw-w-3 tw-text-gray-400" />
-                      {formatDate(customer.registration)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
-                    {customer.orders}
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
-                    ${customer.spent.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                    <span className={`tw-inline-block tw-rounded-full tw-px-4 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm ${customer.status === 'active' ? 'tw-bg-[var(--color-primary-500)] tw-text-white' : customer.status === 'inactive' ? 'tw-bg-gray-400 tw-text-white' : 'tw-bg-blue-200 tw-text-blue-900'}`}>{statusConfig[customer.status].label}</span>
-                    {customer.tags && (
-                      <div className="tw-flex tw-gap-1 tw-mt-1">
-                        {customer.tags.slice(0, 2).map(tag => (
-                          <span key={tag} className="tw-inline-block tw-bg-gray-100 tw-text-gray-700 tw-rounded-full tw-px-2 tw-py-0.5 tw-text-xs tw-font-medium tw-mr-1">{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="tw-h-5 tw-w-5" />
+            </TableHeader>
+            <TableBody>
+              {paginatedCustomers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="tw-text-center tw-py-8">
+                    <div className="tw-flex tw-flex-col tw-items-center tw-gap-2">
+                      <AlertCircle className="tw-h-8 tw-w-8 tw-text-gray-400" />
+                      <p className="tw-text-gray-500">No customers found</p>
+                      {(search || statusFilter) && (
+                        <Button variant="outline" size="sm" onClick={resetFilters}>
+                          Clear filters
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
-                          <Eye className="tw-h-4 tw-w-4 tw-mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="tw-h-4 tw-w-4 tw-mr-2" />
-                          Edit Customer
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Mail className="tw-h-4 tw-w-4 tw-mr-2" />
-                          Send Email
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => {
-                            setCustomerToDelete(customer.id);
-                            setShowDeleteDialog(true);
-                          }}
-                          className="tw-text-red-600"
-                        >
-                          <Trash2 className="tw-h-4 tw-w-4 tw-mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedCustomers.map((customer, index) => {
+                  const status = customer.status as keyof typeof statusConfig;
+                  const statusInfo = statusConfig[status] || { label: "Unknown", color: "tw-bg-gray-200 tw-text-gray-600", variant: "secondary" };
+                  return (
+                    <TableRow key={customer.id} className={`${index % 2 === 0 ? 'tw-bg-white' : 'tw-bg-[var(--color-neutral-100)]'} hover:tw-shadow-lg hover:tw-scale-[1.01] tw-transition tw-rounded-lg`}>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
+                        <div className="tw-h-7 tw-w-7 tw-rounded-full tw-bg-gradient-to-br tw-from-[var(--color-primary-100)] tw-to-[var(--color-primary-500)] tw-flex tw-items-center tw-justify-center tw-font-bold tw-text-[var(--color-primary-700)]">
+                          {getInitials(customer.name)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
+                        <div className="tw-font-semibold tw-text-[var(--color-primary-900)]">{customer.name}</div>
+                        <div className="tw-text-sm tw-text-gray-500">{customer.email}</div>
+                        <div className="tw-text-xs tw-text-gray-400 tw-flex tw-items-center"><Phone className="tw-h-3 tw-w-3 tw-mr-1" />{customer.phone}</div>
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
+                        <div className="tw-flex tw-items-center tw-gap-1 tw-text-sm">
+                          <Calendar className="tw-h-3 tw-w-3 tw-text-gray-400" />
+                          {formatDate(customer.registration)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
+                        {customer.orders}
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
+                        ${typeof customer.spent === "number" ? customer.spent.toLocaleString() : "0"}
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
+                        <span className={`tw-inline-block tw-rounded-full tw-px-4 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm ${customer.status === 'active' ? 'tw-bg-[var(--color-primary-500)] tw-text-white' : customer.status === 'inactive' ? 'tw-bg-gray-400 tw-text-white' : 'tw-bg-blue-200 tw-text-blue-900'}`}>
+                          {statusInfo.label}
+                        </span>
+                        {customer.tags && (
+                          <div className="tw-flex tw-gap-1 tw-mt-1">
+                            {customer.tags.slice(0, 2).map((tag: string) => (
+                              <span key={tag} className="tw-inline-block tw-bg-gray-100 tw-text-gray-700 tw-rounded-full tw-px-2 tw-py-0.5 tw-text-xs tw-font-medium tw-mr-1">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="tw-h-5 tw-w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
+                              <Eye className="tw-h-4 tw-w-4 tw-mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="tw-h-4 tw-w-4 tw-mr-2" />
+                              Edit Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="tw-h-4 tw-w-4 tw-mr-2" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setCustomerToDelete(customer.id);
+                                setShowDeleteDialog(true);
+                              }}
+                              className="tw-text-red-600"
+                            >
+                              <Trash2 className="tw-h-4 tw-w-4 tw-mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* Pagination */}
@@ -485,8 +502,8 @@ export default function CustomersTable() {
                       <p className="tw-text-gray-600">{selectedCustomer.email}</p>
                       <p className="tw-text-gray-600">{selectedCustomer.phone}</p>
                       <div className="tw-flex tw-gap-2 tw-mt-2">
-                        <Badge variant={statusConfig[selectedCustomer.status].variant} className="tw-bg-[var(--color-primary-500)] tw-text-white tw-rounded-full tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm tw-inline-flex tw-items-center tw-gap-1 tw-animate-pulse">
-                          {statusConfig[selectedCustomer.status].label}
+                        <Badge variant={statusConfig[selectedCustomer.status as keyof typeof statusConfig].variant} className="tw-bg-[var(--color-primary-500)] tw-text-white tw-rounded-full tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm tw-inline-flex tw-items-center tw-gap-1 tw-animate-pulse">
+                          {statusConfig[selectedCustomer.status as keyof typeof statusConfig].label}
                         </Badge>
                         {selectedCustomer.tags?.map(tag => (
                           <Badge key={tag} variant="outline">{tag}</Badge>

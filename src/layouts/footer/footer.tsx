@@ -33,7 +33,7 @@ const Footer = ({style_2=false}:IProps) => {
                 </div>
                 <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
                    <div className="tpfooter__widget footer-col-2 mb-50">
-                      <h4 className="tpfooter__widget-title">Looking for Orfarm?</h4>
+                      <h4 className="tpfooter__widget-title">Looking for REO spices and powders?</h4>
                       <p>68 St. Vicent Place, Glasgow, Greater <br/> Newyork NH2012, UK.</p>
                       <div className="tpfooter__widget-time-info mt-35">
                          <span>Monday – Friday: <b>8:10 AM – 6:10 PM</b></span>
@@ -60,7 +60,7 @@ const Footer = ({style_2=false}:IProps) => {
                    <div className="tpfooter__widget footer-col-4 mb-50">
                       <h4 className="tpfooter__widget-title">Our newsletter</h4>
                       <div className="tpfooter__widget-newsletter">
-                         <p>Subscribe to the Orfarm mailing list to receive updates <br/> on new arrivals & other information.</p>
+                         <p>Subscribe to the REO spices and powders mailing list to receive updates <br/> on new arrivals & other information.</p>
                          <form>
                             <span>
                               <i>
@@ -89,7 +89,7 @@ const Footer = ({style_2=false}:IProps) => {
              <div className="row">
                 <div className="col-lg-6 col-md-7 col-sm-12">
                    <div className="tpfooter__copyright">
-                      <span className="tpfooter__copyright-text">Copyright © <a href="#">ORFARM</a> all rights reserved. Powered by <a href="#">ThemePure</a>.</span>
+                      <span className="tpfooter__copyright-text">Copyright © <a href="#">REO spices and powders</a> all rights reserved. Powered by <a href="#">REORANK</a>.</span>
                    </div>
                 </div>
                 <div className="col-lg-6 col-md-5 col-sm-12">

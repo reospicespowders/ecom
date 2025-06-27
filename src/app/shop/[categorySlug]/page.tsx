@@ -12,7 +12,7 @@ type CategoryPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Category Shop - Orfarm",
+  title: "Category Shop - REO spices and powders",
 };
 
 export default function CategoryShopPage({ params }: CategoryPageProps) {

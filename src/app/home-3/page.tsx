@@ -15,7 +15,7 @@ import BlogItems from "@/components/blogs/blog-items";
 import Footer from "@/layouts/footer/footer";
 
 export const metadata: Metadata = {
-  title: "Home Three - Orfarm",
+  title: "Home Three - REO spices and powders",
 };
 
 

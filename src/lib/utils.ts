@@ -6,9 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Utility to add tw- prefix to Tailwind classes
-type ClassValue = string | number | null | undefined | ClassValue[];
+// (ClassValue type is now imported from clsx)
 
-export function tw(...inputs: ClassValue[]): string {
+export function tw(...inputs: any[]): string {
   return inputs
     .flat(Infinity)
     .filter(Boolean)
@@ -24,6 +24,6 @@ export function tw(...inputs: ClassValue[]): string {
 }
 
 // Dashboard-specific className utility (uses tw and cn)
-export function dcn(...inputs: ClassValue[]): string {
-  return tw(inputs);
+export function dcn(...inputs: any[]): string {
+  return tw(...inputs);
 }

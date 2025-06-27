@@ -26,7 +26,7 @@ const AboutAreaFour = () => {
              <div className="tpabout__inner-2 mb-30">
                 <div className="tpabout__inner-tag mb-10">
                    <span className="active">About us</span>
-                   <span>Welcome to Orfarm</span>
+                   <span>Welcome to REO spices and powders</span>
                 </div>
                 <h3 className="tpabout__inner-title-2 mb-25">We Help Your <br/> Digital Business Grow</h3>
                 <p>We provide digital experience services to startups and small businesses. We help our <br/>

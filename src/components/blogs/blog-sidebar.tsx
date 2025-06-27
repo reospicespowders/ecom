@@ -70,7 +70,7 @@ const BlogSidebar = ({left_sidebar}:IProps) => {
                 <Link href="/blog-details">natural</Link>
                 <Link href="/blog-details">salad</Link>
                 <Link href="/blog-details">foods</Link>
-                <Link href="/blog-details">orfarm</Link>
+                <Link href="/blog-details">REO spices and powders</Link>
                 <Link href="/blog-details">meat</Link>
                 <Link href="/blog-details">grocery </Link>
                 <Link href="/blog-details">fresh</Link>

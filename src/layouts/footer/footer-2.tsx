@@ -15,8 +15,8 @@ const FooterTwo = () => {
                     <div className="tpfooter__widget footer-2-col-1 mb-50">
                         <h4 className="tpfooter__widget-title">Looking For Store?</h4>
                         <p>
-                          78 St. Vicent Place, Glasgow, Greater Newyork
-                          NH4014, UK.
+                        2045 W Jackson Blvd
+                        Chicago, Illinois(IL), 60612
                         </p>
                         <div className="tpfooter__widget-social mt-45">
                           <span className="tpfooter__widget-social-title mb-5">Download App:</span>
@@ -92,7 +92,7 @@ const FooterTwo = () => {
                             <Image src={payment} alt="payment" style={{height:"auto"}}/>
                            </a>
                         </div>
-                        <span className="tpfooter__copyright-text">Copyright © <a href="#">ORFARM</a> all rights reserved. Powered by <a href="#">ThemePure</a>.</span>
+                        <span className="tpfooter__copyright-text">Copyright © <a href="#">REO spices and powders</a> all rights reserved. Powered by <a href="reorank.com">REO RANK</a>.</span>
                     </div>
                   </div>
               </div>

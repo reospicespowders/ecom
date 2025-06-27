@@ -40,7 +40,7 @@ const AboutArea = ({style_2 = false}:IProps) => {
             )}
             <div className="row">
               <AboutItem icon="1" title="Select Your Products" subtitle="Choose from select produce to start. <br/> Keep, add, or remove items."/>
-              <AboutItem icon="2" title="Our Shop Orfarm" subtitle="We provide 100+ products, provide <br/> enough nutrition for your family."/>
+              <AboutItem icon="2" title="Our Shop REO spices and powders" subtitle="We provide 100+ products, provide <br/> enough nutrition for your family."/>
               <AboutItem icon="3" title="Delivery To Your" subtitle="Delivery to your door. Up to 100km  <br/> and it is completely free."/>
             </div>
           </div>

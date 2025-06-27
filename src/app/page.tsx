@@ -15,7 +15,7 @@ import BlogItems from "@/components/blogs/blog-items";
 import Footer from "@/layouts/footer/footer";
 
 export const metadata: Metadata = {
-  title: "Orfarm - Multipurpose eCommerce Next js Template"
+  title: "REO spices and powders - Multipurpose eCommerce Next js Template"
 };
 
 export default function HomePage() {

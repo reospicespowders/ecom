@@ -8,7 +8,7 @@ import Footer from "@/layouts/footer/footer";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Search - Orfarm",
+  title: "Search - REO spices and powders",
 };
 
 export default function SearchPage() {

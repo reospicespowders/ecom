@@ -8,7 +8,7 @@ import CouponArea from "@/components/checkout/coupon-area";
 import CheckoutArea from "@/components/checkout/checkout-area";
 
 export const metadata: Metadata = {
-  title: "Checkout - Orfarm",
+  title: "Checkout - REO spices and powders",
 };
 
 export default function CheckoutPage() {

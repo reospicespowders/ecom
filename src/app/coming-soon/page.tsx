@@ -8,7 +8,7 @@ import shape_2 from '@/assets/img/shape/comming-shae-2.png';
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Coming Soon - Orfarm",
+  title: "Coming Soon - REO spices and powders",
 };
 
 export default function ComingSoonPage() {
@@ -46,7 +46,7 @@ export default function ComingSoonPage() {
                            <a className="rainbow__youtube" href="#"><i className="fab fa-youtube"></i></a>
                         </div>
                         <div className="tpsoon__copyright">
-                           <span>Copyright <Link href="/">© ORFARM</Link> all rights reserved. Powered by <a href="#">Theme_pure</a>.</span>
+                           <span>Copyright <Link href="/">© REO spices and powders</Link> all rights reserved. Powered by <a href="#">Theme_pure</a>.</span>
                         </div>
                      </div>
                   </div>

@@ -8,7 +8,7 @@ import ShopArea from "@/components/shop/shop-area";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Shop - Orfarm",
+  title: "Shop - REO spices and powders",
 };
 
 export default function ShopPage() {

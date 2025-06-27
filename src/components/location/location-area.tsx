@@ -29,7 +29,7 @@ function LocationItem({img,title,add,phone,email,open}:IProps) {
                     <a href="tel:012345678">Phone: {phone}</a>
                 </li>
                 <li>
-                    <a href="mailto:orfarm@google.com">Email: {email}</a>
+                    <a href="mailto:REO spices and powders@google.com">Email: {email}</a>
                 </li>
                 <li>
                     Opening Hours: <span> {open}</span>
@@ -48,10 +48,10 @@ const LocationArea = () => {
        <div className="row">
           <div className="col-lg-6">
              <div className="tplocation__wrapper mb-30">
-              <LocationItem img="1" title="Rue Pelleport - Paris" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7890" email="Orfarm@google.com" open="09:00 AM - 18:00 PM" />
-              <LocationItem img="2" title="Prospect - New York" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 8899" email="Orfarm@google.com" open="09:00 AM - 18:00 PM" />
-              <LocationItem img="3" title="Budapest - Hung" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7755" email="Orfarm@google.com" open="09:00 AM - 18:00 PM" />
-              <LocationItem img="4" title="Kastrup - Denmark" add="Heaven Stress, Beverly Contributors" phone="(+100) 123 456 5544" email="Orfarm@google.com" open="09:00 AM - 18:00 PM" />
+              <LocationItem img="1" title="Rue Pelleport - Paris" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7890" email="REO spices and powders@google.com" open="09:00 AM - 18:00 PM" />
+              <LocationItem img="2" title="Prospect - New York" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 8899" email="REO spices and powders@google.com" open="09:00 AM - 18:00 PM" />
+              <LocationItem img="3" title="Budapest - Hung" add="Heaven Stress, Beverly Melbourne" phone="(+100) 123 456 7755" email="REO spices and powders@google.com" open="09:00 AM - 18:00 PM" />
+              <LocationItem img="4" title="Kastrup - Denmark" add="Heaven Stress, Beverly Contributors" phone="(+100) 123 456 5544" email="REO spices and powders@google.com" open="09:00 AM - 18:00 PM" />
              </div>
           </div>
           <div className="col-lg-6">
