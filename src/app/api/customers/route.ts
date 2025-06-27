@@ -6,6 +6,7 @@ import {
   createOrUpdateCustomer,
   getCustomerInteractions,
   addCustomerInteraction,
+  getAllCustomers,
 } from '@/utils/supabase/client';
 import { createClient } from '@/utils/supabase/server';
 
@@ -17,6 +18,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const supabase = createClient();
+    // Check for admin query param
+    const url = new URL(req.url);
+    const isAll = url.searchParams.get('all') === '1';
+    // TEMP: Replace with real admin check
+    const isAdmin = userId === process.env.ADMIN_USER_ID;
+    if (isAll && isAdmin) {
+      const customers = await getAllCustomers(supabase);
+      return NextResponse.json(customers);
+    }
     const customer = await getCustomerProfile(supabase, userId);
     return NextResponse.json(customer);
   } catch (error: any) {

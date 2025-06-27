@@ -131,4 +131,14 @@ export async function addCustomerInteraction(
     .single();
   if (error) throw error;
   return data;
+}
+
+// Get all customers (admin)
+export async function getAllCustomers(supabase: any) {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
 } 

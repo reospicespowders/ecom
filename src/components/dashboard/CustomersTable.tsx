@@ -11,7 +11,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -27,7 +26,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,158 +42,171 @@ import {
   Mail,
   Phone,
   Calendar,
-  DollarSign,
-  ShoppingBag,
-  AlertCircle
+  AlertCircle,
+  User
 } from "lucide-react";
-import { useCustomerProfile } from "@/hooks/useCustomer";
+import { useCustomerProfile, useAllCustomers } from "@/hooks/useCustomer";
+import { useUser } from "@clerk/nextjs";
 
-// Enhanced Customer Interface
+// Customer interface matching your database schema
 interface Customer {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
-  registration: string;
-  orders: number;
-  spent: number;
-  status: "active" | "inactive" | "blocked";
-  avatar?: string;
-  lastOrderDate?: string;
-  tags?: string[];
-  notes?: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
+  status: "active" | "inactive" | "blocked" | "prospect";
+  source: string | null;
+  total_orders: number | null;
+  total_spent: number | null;
+  average_order_value: number | null;
+  last_order_date: string | null;
+  last_contact_date: string | null;
+  preferred_contact_method: "email" | "phone" | "sms" | "mail" | null;
+  notes: string | null;
+  custom_fields: Record<string, any> | null;
+  created_at: string | null;
+  updated_at: string | null;
+  clerk_user_id: string | null;
 }
-
-// Enhanced mock data
-const mockCustomers: Customer[] = [
-  {
-    id: "C001",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 555-1234",
-    registration: "2024-01-10",
-    orders: 12,
-    spent: 1200,
-    status: "active",
-    lastOrderDate: "2024-06-15",
-    tags: ["VIP", "Loyal"],
-    notes: "Prefers express shipping"
-  },
-  {
-    id: "C002",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1 555-5678",
-    registration: "2024-02-15",
-    orders: 5,
-    spent: 350,
-    status: "inactive",
-    lastOrderDate: "2024-05-20",
-    tags: ["Retail"],
-  },
-  {
-    id: "C003",
-    name: "Alice Brown",
-    email: "alice@example.com",
-    phone: "+1 555-8765",
-    registration: "2024-03-20",
-    orders: 8,
-    spent: 800,
-    status: "active",
-    lastOrderDate: "2024-06-20",
-    tags: ["Wholesale"],
-  },
-  {
-    id: "C004",
-    name: "Bob Lee",
-    email: "bob@example.com",
-    phone: "+1 555-4321",
-    registration: "2024-04-05",
-    orders: 2,
-    spent: 100,
-    status: "blocked",
-    lastOrderDate: "2024-04-10",
-    tags: ["Risk"],
-    notes: "Payment issues reported"
-  },
-  {
-    id: "C005",
-    name: "Carol Wilson",
-    email: "carol@example.com",
-    phone: "+1 555-9876",
-    registration: "2024-05-12",
-    orders: 15,
-    spent: 2500,
-    status: "active",
-    lastOrderDate: "2024-06-25",
-    tags: ["VIP", "Premium"],
-  },
-  {
-    id: "C006",
-    name: "David Chen",
-    email: "david@example.com",
-    phone: "+1 555-2468",
-    registration: "2024-06-01",
-    orders: 1,
-    spent: 50,
-    status: "active",
-    lastOrderDate: "2024-06-02",
-    tags: ["New"],
-  }
-];
 
 const statusConfig = {
   active: { 
     variant: "default" as const, 
-    color: "tw-bg-green-100 tw-text-green-800",
+    color: "bg-green-100 text-green-800",
     label: "Active"
   },
   inactive: { 
     variant: "secondary" as const, 
-    color: "tw-bg-gray-100 tw-text-gray-800",
+    color: "bg-gray-100 text-gray-800",
     label: "Inactive"
   },
   blocked: { 
     variant: "destructive" as const, 
-    color: "tw-bg-red-100 tw-text-red-800",
+    color: "bg-red-100 text-red-800",
     label: "Blocked"
+  },
+  prospect: { 
+    variant: "outline" as const, 
+    color: "bg-blue-100 text-blue-800",
+    label: "Prospect"
   },
 };
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export default function CustomersTable() {
   // State management
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [selected, setSelected] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<keyof Customer>("name");
+  const [sortField, setSortField] = useState<keyof Customer>("first_name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
 
-  // Fetch real customer data
-  const { customer, isLoading, isError } = useCustomerProfile();
+  // Fetch data
+  const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
+  const { customer: currentUserCustomer, isLoading: isCurrentLoading, isError: isCurrentError } = useCustomerProfile();
+  const { customers: allCustomers, isLoading: isAllLoading, isError: isAllError } = useAllCustomers();
 
-  // Use real data if available, otherwise fallback to mock
-  const customersData = customer ? [customer] : mockCustomers;
+  // Determine what data to show
+  const customersData: Customer[] = useMemo(() => {
+    // If we have all customers data (admin view), use that
+    if (allCustomers && Array.isArray(allCustomers) && allCustomers.length > 0) {
+      return allCustomers;
+    }
+    
+    // If we have current user's customer data, show just that
+    if (currentUserCustomer) {
+      return [currentUserCustomer];
+    }
+    
+    // If user is loaded but no customer profile exists, create a basic entry
+    if (isUserLoaded && isSignedIn && user && !isCurrentLoading) {
+      const basicCustomer: Customer = {
+        id: user.id,
+        first_name: user.firstName || "",
+        last_name: user.lastName || "",
+        email: user.emailAddresses?.[0]?.emailAddress || null,
+        phone: user.phoneNumbers?.[0]?.phoneNumber || null,
+        avatar_url: user.imageUrl || null,
+        address_line_1: null,
+        address_line_2: null,
+        city: null,
+        state: null,
+        postal_code: null,
+        country: "US",
+        status: "active",
+        source: "clerk",
+        total_orders: 0,
+        total_spent: 0,
+        average_order_value: 0,
+        last_order_date: null,
+        last_contact_date: null,
+        preferred_contact_method: null,
+        notes: null,
+        custom_fields: {},
+        created_at: user.createdAt ? new Date(user.createdAt).toISOString() : null,
+        updated_at: null,
+        clerk_user_id: user.id,
+      };
+      return [basicCustomer];
+    }
+    
+    return [];
+  }, [allCustomers, currentUserCustomer, user, isUserLoaded, isSignedIn, isCurrentLoading]);
+
+  // Helper functions
+  const getFullName = (customer: Customer) => {
+    return `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "No Name";
+  };
+
+  const getInitials = (customer: Customer) => {
+    const firstName = customer.first_name || "";
+    const lastName = customer.last_name || "";
+    return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null || amount === undefined) return "$0";
+    return `$${amount.toLocaleString()}`;
+  };
 
   // Memoized filtered and sorted data
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customersData.filter((customer) => {
+      const fullName = getFullName(customer);
       const matchesSearch = !search || 
-        customer.name.toLowerCase().includes(search.toLowerCase()) ||
-        customer.email.toLowerCase().includes(search.toLowerCase()) ||
+        fullName.toLowerCase().includes(search.toLowerCase()) ||
+        (customer.email && customer.email.toLowerCase().includes(search.toLowerCase())) ||
         customer.id.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = !statusFilter || customer.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
+
     // Sorting
     filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle null values
+      if (aValue === null) aValue = "";
+      if (bValue === null) bValue = "";
+      
       if (typeof aValue === "string" && typeof bValue === "string") {
         return sortDirection === "asc" 
           ? aValue.localeCompare(bValue)
@@ -226,38 +237,17 @@ export default function CustomersTable() {
     }
   }, [sortField]);
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    setSelected(checked ? paginatedCustomers.map(c => c.id) : []);
-  }, [paginatedCustomers]);
-
-  const handleSelectCustomer = useCallback((customerId: string, checked: boolean) => {
-    setSelected(prev => 
-      checked 
-        ? [...prev, customerId]
-        : prev.filter(id => id !== customerId)
-    );
-  }, []);
-
-  const handleBulkAction = useCallback((action: string) => {
-    console.log(`Bulk action: ${action} for customers:`, selected);
-    // Implement bulk actions here
-    setSelected([]);
-  }, [selected]);
-
   const handleExport = useCallback(() => {
-    const dataToExport = selected.length > 0 
-      ? customersData.filter(c => selected.includes(c.id))
-      : filteredAndSortedCustomers;
-    
+    const dataToExport = filteredAndSortedCustomers;
     console.log("Exporting customers:", dataToExport);
-    // Implement CSV export logic here
-  }, [selected, filteredAndSortedCustomers]);
+    // TODO: Implement CSV export logic
+  }, [filteredAndSortedCustomers]);
 
   const handleDeleteCustomer = useCallback((customerId: string) => {
     console.log("Deleting customer:", customerId);
     setShowDeleteDialog(false);
     setCustomerToDelete(null);
-    // Implement delete logic here
+    // TODO: Implement delete logic
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -266,97 +256,112 @@ export default function CustomersTable() {
     setCurrentPage(1);
   }, []);
 
-  // Get customer initials for avatar
-  const getInitials = (name?: string) => {
-    if (!name) return "";
-    return name
-      .split(" ")
-      .map(n => n[0] || "")
-      .join("")
-      .toUpperCase();
-  };
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  // Loading and error states
+  const isLoading = isCurrentLoading || isAllLoading;
+  const isError = isCurrentError || isAllError;
 
   return (
-    <div className="tw-space-y-4">
+    <div className="space-y-4">
       {/* Header with search and filters */}
-      <div className="tw-flex tw-flex-col md:tw-flex-row tw-items-center tw-justify-between tw-gap-6 tw-mb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
         {/* Search */}
-        <div className="tw-flex-1 tw-flex tw-items-center">
-          <div className="tw-relative tw-w-full md:tw-max-w-xs">
-            <Search className="tw-absolute tw-left-4 tw-top-1/2 tw-transform -tw-translate-y-1/2 tw-h-5 tw-w-5 tw-text-[var(--color-primary-700)]" />
+        <div className="flex-1 flex items-center max-w-sm">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              className="tw-w-full tw-pl-12 tw-h-12 tw-rounded-xl tw-bg-white/80 tw-backdrop-blur-lg tw-shadow-md tw-border-none tw-text-base tw-font-medium tw-placeholder-gray-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[var(--color-primary-500)] focus:tw-bg-white"
+              className="pl-10"
               placeholder="Search customers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
+
         {/* Filter */}
-        <div className="tw-flex-1 tw-flex tw-justify-center">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="tw-h-16 tw-px-8 tw-rounded-xl tw-bg-white/80 tw-backdrop-blur-lg tw-shadow-md tw-border-none tw-flex tw-items-center tw-gap-3 tw-font-bold tw-text-lg tw-text-[var(--color-primary-700)] hover:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[var(--color-primary-500)]">
-              <Filter className="tw-h-6 tw-w-6" />
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="blocked">Blocked</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="blocked">Blocked</SelectItem>
+            <SelectItem value="prospect">Prospect</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Export */}
-        <div className="tw-flex-1 tw-flex tw-justify-end">
-          <Button
-            variant="outline"
-            size="lg"
-            className="tw-h-16 tw-px-8 tw-rounded-xl tw-bg-white/80 tw-backdrop-blur-lg tw-shadow-md tw-border-none tw-flex tw-items-center tw-gap-3 tw-font-bold tw-text-lg tw-text-[var(--color-primary-700)] hover:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[var(--color-primary-500)]"
-            onClick={handleExport}
-          >
-            <Download className="tw-h-6 tw-w-6" />
-            Export
-          </Button>
-        </div>
+        <Button variant="outline" onClick={handleExport}>
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
       </div>
 
       {/* Results summary */}
-      <div className="tw-text-sm tw-text-gray-600">
+      <div className="text-sm text-gray-600">
         Showing {paginatedCustomers.length} of {filteredAndSortedCustomers.length} customers
-        {selected.length > 0 && ` (${selected.length} selected)`}
       </div>
 
       {/* Table */}
-      <div className="card-modern tw-shadow-lg tw-rounded-xl tw-bg-white tw-p-0 tw-overflow-x-auto">
+      <div className="border rounded-lg bg-white overflow-hidden">
         {isLoading ? (
-          <div className="tw-p-8 tw-text-center">Loading customers...</div>
+          <div className="p-8 text-center">Loading customers...</div>
         ) : isError ? (
-          <div className="tw-p-8 tw-text-center tw-text-red-500">Failed to load customers.</div>
+          <div className="p-8 text-center text-red-500">Failed to load customers.</div>
         ) : (
-          <Table className="tw-min-w-full tw-border-separate tw-border-spacing-0">
+          <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="tw-w-12 tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm"></TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Customer</TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Registration</TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Orders</TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Total Spent</TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm">Status</TableHead>
-                <TableHead className="tw-font-bold tw-text-lg tw-text-[var(--color-primary-900)] tw-bg-white/90 tw-sticky tw-top-0 tw-z-10 tw-backdrop-blur-md tw-shadow-sm tw-text-right">Actions</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort("first_name")}
+                >
+                  Customer
+                  {sortField === "first_name" && (
+                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort("created_at")}
+                >
+                  Registration
+                  {sortField === "created_at" && (
+                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort("total_orders")}
+                >
+                  Orders
+                  {sortField === "total_orders" && (
+                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort("total_spent")}
+                >
+                  Total Spent
+                  {sortField === "total_spent" && (
+                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="tw-text-center tw-py-8">
-                    <div className="tw-flex tw-flex-col tw-items-center tw-gap-2">
-                      <AlertCircle className="tw-h-8 tw-w-8 tw-text-gray-400" />
-                      <p className="tw-text-gray-500">No customers found</p>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertCircle className="h-8 w-8 text-gray-400" />
+                      <p className="text-gray-500">No customers found</p>
                       {(search || statusFilter) && (
                         <Button variant="outline" size="sm" onClick={resetFilters}>
                           Clear filters
@@ -366,82 +371,90 @@ export default function CustomersTable() {
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedCustomers.map((customer, index) => {
-                  const status = customer.status as keyof typeof statusConfig;
-                  const statusInfo = statusConfig[status] || { label: "Unknown", color: "tw-bg-gray-200 tw-text-gray-600", variant: "secondary" };
-                  return (
-                    <TableRow key={customer.id} className={`${index % 2 === 0 ? 'tw-bg-white' : 'tw-bg-[var(--color-neutral-100)]'} hover:tw-shadow-lg hover:tw-scale-[1.01] tw-transition tw-rounded-lg`}>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                        <div className="tw-h-7 tw-w-7 tw-rounded-full tw-bg-gradient-to-br tw-from-[var(--color-primary-100)] tw-to-[var(--color-primary-500)] tw-flex tw-items-center tw-justify-center tw-font-bold tw-text-[var(--color-primary-700)]">
-                          {getInitials(customer.name)}
+                paginatedCustomers.map((customer) => (
+                  <TableRow key={customer.id} className="hover:bg-gray-50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={customer.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {getInitials(customer)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{getFullName(customer)}</div>
+                          <div className="text-sm text-gray-500">ID: {customer.id.slice(0, 8)}...</div>
                         </div>
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                        <div className="tw-font-semibold tw-text-[var(--color-primary-900)]">{customer.name}</div>
-                        <div className="tw-text-sm tw-text-gray-500">{customer.email}</div>
-                        <div className="tw-text-xs tw-text-gray-400 tw-flex tw-items-center"><Phone className="tw-h-3 tw-w-3 tw-mr-1" />{customer.phone}</div>
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                        <div className="tw-flex tw-items-center tw-gap-1 tw-text-sm">
-                          <Calendar className="tw-h-3 tw-w-3 tw-text-gray-400" />
-                          {formatDate(customer.registration)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="h-3 w-3 text-gray-400" />
+                          {customer.email || "No email"}
                         </div>
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
-                        {customer.orders}
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-font-semibold tw-text-[var(--color-primary-900)]">
-                        ${typeof customer.spent === "number" ? customer.spent.toLocaleString() : "0"}
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle">
-                        <span className={`tw-inline-block tw-rounded-full tw-px-4 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm ${customer.status === 'active' ? 'tw-bg-[var(--color-primary-500)] tw-text-white' : customer.status === 'inactive' ? 'tw-bg-gray-400 tw-text-white' : 'tw-bg-blue-200 tw-text-blue-900'}`}>
-                          {statusInfo.label}
-                        </span>
-                        {customer.tags && (
-                          <div className="tw-flex tw-gap-1 tw-mt-1">
-                            {customer.tags.slice(0, 2).map((tag: string) => (
-                              <span key={tag} className="tw-inline-block tw-bg-gray-100 tw-text-gray-700 tw-rounded-full tw-px-2 tw-py-0.5 tw-text-xs tw-font-medium tw-mr-1">{tag}</span>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="tw-px-6 tw-py-4 tw-align-middle tw-text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="tw-h-5 tw-w-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
-                              <Eye className="tw-h-4 tw-w-4 tw-mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="tw-h-4 tw-w-4 tw-mr-2" />
-                              Edit Customer
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Mail className="tw-h-4 tw-w-4 tw-mr-2" />
-                              Send Email
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setCustomerToDelete(customer.id);
-                                setShowDeleteDialog(true);
-                              }}
-                              className="tw-text-red-600"
-                            >
-                              <Trash2 className="tw-h-4 tw-w-4 tw-mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
+                        <div className="flex items-center gap-1 text-sm">
+                          <Phone className="h-3 w-3 text-gray-400" />
+                          {customer.phone || "No phone"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Calendar className="h-3 w-3 text-gray-400" />
+                        {formatDate(customer.created_at)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {customer.total_orders || 0}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {formatCurrency(customer.total_spent)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={statusConfig[customer.status].variant}
+                        className={statusConfig[customer.status].color}
+                      >
+                        {statusConfig[customer.status].label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Customer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send Email
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setCustomerToDelete(customer.id);
+                              setShowDeleteDialog(true);
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -450,18 +463,18 @@ export default function CustomersTable() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="tw-flex tw-items-center tw-justify-between">
-          <div className="tw-text-sm tw-text-gray-600">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
             Page {currentPage} of {totalPages}
           </div>
-          <div className="tw-flex tw-gap-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
-              <ChevronLeft className="tw-h-4 tw-w-4" />
+              <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
             <Button
@@ -471,7 +484,7 @@ export default function CustomersTable() {
               disabled={currentPage === totalPages}
             >
               Next
-              <ChevronRight className="tw-h-4 tw-w-4" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -479,61 +492,92 @@ export default function CustomersTable() {
 
       {/* Customer Details Modal */}
       <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
-        <DialogContent className="tw-max-w-2xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Customer Details</DialogTitle>
             <DialogDescription>
-              Complete information for {selectedCustomer?.name}
+              Complete information for {selectedCustomer ? getFullName(selectedCustomer) : ""}
             </DialogDescription>
           </DialogHeader>
           {selectedCustomer && (
-            <div className="tw-space-y-4">
+            <div className="space-y-4">
               <Card>
-                <CardContent className="tw-pt-6">
-                  <div className="tw-flex tw-items-start tw-gap-4">
-                    <Avatar className="tw-h-16 tw-w-16">
-                      <AvatarImage src={selectedCustomer.avatar} />
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={selectedCustomer.avatar_url || undefined} />
                       <AvatarFallback>
-                        {getInitials(selectedCustomer.name)}
+                        {getInitials(selectedCustomer)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="tw-flex-1">
-                      <h3 className="tw-text-lg tw-font-semibold">{selectedCustomer.name}</h3>
-                      <p className="tw-text-gray-600">{selectedCustomer.email}</p>
-                      <p className="tw-text-gray-600">{selectedCustomer.phone}</p>
-                      <div className="tw-flex tw-gap-2 tw-mt-2">
-                        <Badge variant={statusConfig[selectedCustomer.status as keyof typeof statusConfig].variant} className="tw-bg-[var(--color-primary-500)] tw-text-white tw-rounded-full tw-px-3 tw-py-1 tw-text-xs tw-font-semibold tw-shadow-sm tw-inline-flex tw-items-center tw-gap-1 tw-animate-pulse">
-                          {statusConfig[selectedCustomer.status as keyof typeof statusConfig].label}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{getFullName(selectedCustomer)}</h3>
+                      <p className="text-gray-600">{selectedCustomer.email || "No email"}</p>
+                      <p className="text-gray-600">{selectedCustomer.phone || "No phone"}</p>
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant={statusConfig[selectedCustomer.status].variant}>
+                          {statusConfig[selectedCustomer.status].label}
                         </Badge>
-                        {selectedCustomer.tags?.map(tag => (
-                          <Badge key={tag} variant="outline">{tag}</Badge>
-                        ))}
+                        {selectedCustomer.source && (
+                          <Badge variant="outline">{selectedCustomer.source}</Badge>
+                        )}
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <div className="tw-grid tw-grid-cols-2 tw-gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <Card>
-                  <CardContent className="tw-pt-6">
-                    <div className="tw-text-2xl tw-font-bold">{selectedCustomer.orders}</div>
-                    <p className="tw-text-gray-600">Total Orders</p>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{selectedCustomer.total_orders || 0}</div>
+                    <p className="text-gray-600">Total Orders</p>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="tw-pt-6">
-                    <div className="tw-text-2xl tw-font-bold">${selectedCustomer.spent}</div>
-                    <p className="tw-text-gray-600">Total Spent</p>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{formatCurrency(selectedCustomer.total_spent)}</div>
+                    <p className="text-gray-600">Total Spent</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{formatCurrency(selectedCustomer.average_order_value)}</div>
+                    <p className="text-gray-600">Avg Order Value</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-sm font-medium">{formatDate(selectedCustomer.last_order_date)}</div>
+                    <p className="text-gray-600">Last Order</p>
                   </CardContent>
                 </Card>
               </div>
 
               {selectedCustomer.notes && (
                 <Card>
-                  <CardContent className="tw-pt-6">
-                    <h4 className="tw-font-semibold tw-mb-2">Notes</h4>
-                    <p className="tw-text-gray-700">{selectedCustomer.notes}</p>
+                  <CardContent className="pt-6">
+                    <h4 className="font-semibold mb-2">Notes</h4>
+                    <p className="text-gray-700">{selectedCustomer.notes}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Address */}
+              {(selectedCustomer.address_line_1 || selectedCustomer.city) && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <h4 className="font-semibold mb-2">Address</h4>
+                    <div className="text-sm text-gray-700">
+                      {selectedCustomer.address_line_1 && <div>{selectedCustomer.address_line_1}</div>}
+                      {selectedCustomer.address_line_2 && <div>{selectedCustomer.address_line_2}</div>}
+                      <div>
+                        {selectedCustomer.city && `${selectedCustomer.city}, `}
+                        {selectedCustomer.state && `${selectedCustomer.state} `}
+                        {selectedCustomer.postal_code}
+                      </div>
+                      {selectedCustomer.country && <div>{selectedCustomer.country}</div>}
+                    </div>
                   </CardContent>
                 </Card>
               )}
