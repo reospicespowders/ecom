@@ -80,20 +80,7 @@ export async function requirePermission(permission: string) {
   return true;
 }
 
-// Type-safe metadata access
-interface UserMetadata {
-  role?: "admin" | "user";
-  permissions?: string[];
-  organizationId?: string;
-}
-
-export async function getUserMetadata(): Promise<UserMetadata> {
+export async function getUserMetadata() {
   const { sessionClaims } = await auth();
-  return (sessionClaims?.publicMetadata as UserMetadata) || {};
-}
-
-declare global {
-  interface CustomJwtSessionClaims {
-    publicMetadata: UserMetadata;
-  }
+  return sessionClaims?.publicMetadata || {};
 } 

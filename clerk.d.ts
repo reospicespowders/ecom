@@ -5,6 +5,7 @@ declare global {
     publicMetadata: {
       role?: "admin" | "user";
       permissions?: string[];
+      organizationId?: string;
     };
   }
 } 
