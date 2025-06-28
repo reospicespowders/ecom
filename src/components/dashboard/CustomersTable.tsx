@@ -118,114 +118,167 @@ export default function CustomersTable() {
   const { customer: currentUserCustomer, isLoading: isCurrentLoading, isError: isCurrentError } = useCustomerProfile();
   const { customers: allCustomers, isLoading: isAllLoading, isError: isAllError } = useAllCustomers();
 
-  // Determine what data to show
+  // Determine what data to show with proper safety checks
   const customersData: Customer[] = useMemo(() => {
-    // If we have all customers data (admin view), use that
-    if (allCustomers && Array.isArray(allCustomers) && allCustomers.length > 0) {
-      return allCustomers;
+    // Always ensure we return an array
+    try {
+      // If we have all customers data (admin view), use that
+      if (allCustomers && Array.isArray(allCustomers) && allCustomers.length > 0) {
+        return allCustomers;
+      }
+      
+      // If we have current user's customer data, show just that
+      if (currentUserCustomer && typeof currentUserCustomer === 'object') {
+        return [currentUserCustomer];
+      }
+      
+      // If user is loaded but no customer profile exists, create a basic entry
+      if (isUserLoaded && isSignedIn && user && !isCurrentLoading) {
+        const basicCustomer: Customer = {
+          id: user.id,
+          first_name: user.firstName || "",
+          last_name: user.lastName || "",
+          email: user.emailAddresses?.[0]?.emailAddress || null,
+          phone: user.phoneNumbers?.[0]?.phoneNumber || null,
+          avatar_url: user.imageUrl || null,
+          address_line_1: null,
+          address_line_2: null,
+          city: null,
+          state: null,
+          postal_code: null,
+          country: "US",
+          status: "active",
+          source: "clerk",
+          total_orders: 0,
+          total_spent: 0,
+          average_order_value: 0,
+          last_order_date: null,
+          last_contact_date: null,
+          preferred_contact_method: null,
+          notes: null,
+          custom_fields: {},
+          created_at: user.createdAt ? new Date(user.createdAt).toISOString() : null,
+          updated_at: null,
+          clerk_user_id: user.id,
+        };
+        return [basicCustomer];
+      }
+      
+      // Always return an empty array as fallback
+      return [];
+    } catch (error) {
+      console.error('Error processing customer data:', error);
+      return [];
     }
-    
-    // If we have current user's customer data, show just that
-    if (currentUserCustomer) {
-      return [currentUserCustomer];
-    }
-    
-    // If user is loaded but no customer profile exists, create a basic entry
-    if (isUserLoaded && isSignedIn && user && !isCurrentLoading) {
-      const basicCustomer: Customer = {
-        id: user.id,
-        first_name: user.firstName || "",
-        last_name: user.lastName || "",
-        email: user.emailAddresses?.[0]?.emailAddress || null,
-        phone: user.phoneNumbers?.[0]?.phoneNumber || null,
-        avatar_url: user.imageUrl || null,
-        address_line_1: null,
-        address_line_2: null,
-        city: null,
-        state: null,
-        postal_code: null,
-        country: "US",
-        status: "active",
-        source: "clerk",
-        total_orders: 0,
-        total_spent: 0,
-        average_order_value: 0,
-        last_order_date: null,
-        last_contact_date: null,
-        preferred_contact_method: null,
-        notes: null,
-        custom_fields: {},
-        created_at: user.createdAt ? new Date(user.createdAt).toISOString() : null,
-        updated_at: null,
-        clerk_user_id: user.id,
-      };
-      return [basicCustomer];
-    }
-    
-    return [];
   }, [allCustomers, currentUserCustomer, user, isUserLoaded, isSignedIn, isCurrentLoading]);
 
   // Helper functions
   const getFullName = (customer: Customer) => {
+    if (!customer) return "No Name";
     return `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "No Name";
   };
 
   const getInitials = (customer: Customer) => {
+    if (!customer) return "?";
     const firstName = customer.first_name || "";
     const lastName = customer.last_name || "";
-    return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
+    const firstInitial = firstName.length > 0 ? firstName[0] : "";
+    const lastInitial = lastName.length > 0 ? lastName[0] : "";
+    return `${firstInitial}${lastInitial}`.toUpperCase() || "?";
   };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return "N/A";
+    }
   };
 
   const formatCurrency = (amount: number | null) => {
-    if (amount === null || amount === undefined) return "$0";
+    if (amount === null || amount === undefined || isNaN(amount)) return "$0";
     return `$${amount.toLocaleString()}`;
   };
 
-  // Memoized filtered and sorted data
+  // Memoized filtered and sorted data with enhanced safety
   const filteredAndSortedCustomers = useMemo(() => {
-    let filtered = customersData.filter((customer) => {
-      const fullName = getFullName(customer);
-      const matchesSearch = !search || 
-        fullName.toLowerCase().includes(search.toLowerCase()) ||
-        (customer.email && customer.email.toLowerCase().includes(search.toLowerCase())) ||
-        customer.id.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = !statusFilter || statusFilter === "all" || customer.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
+    try {
+      // Ensure customersData is always an array
+      const safeCustomersData = Array.isArray(customersData) ? customersData : [];
+      
+      if (safeCustomersData.length === 0) {
+        return [];
+      }
+      
+      let filtered = safeCustomersData.filter((customer) => {
+        if (!customer || typeof customer !== 'object') return false;
+        
+        const fullName = getFullName(customer);
+        const matchesSearch = !search || 
+          fullName.toLowerCase().includes(search.toLowerCase()) ||
+          (customer.email && customer.email.toLowerCase().includes(search.toLowerCase())) ||
+          ((customer.id || "").toLowerCase().includes(search.toLowerCase()));
+        const matchesStatus = !statusFilter || statusFilter === "all" || customer.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
 
-    // Sorting
-    filtered.sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
+      // Sorting with safety checks
+      filtered.sort((a, b) => {
+        if (!a || !b) return 0;
+        
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+        
+        // Handle null values
+        if (aValue === null || aValue === undefined) aValue = "";
+        if (bValue === null || bValue === undefined) bValue = "";
+        
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortDirection === "asc" 
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+        return 0;
+      });
       
-      // Handle null values
-      if (aValue === null) aValue = "";
-      if (bValue === null) bValue = "";
-      
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortDirection === "asc" 
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-      }
-      return 0;
-    });
-    return filtered;
+      return filtered;
+    } catch (error) {
+      console.error('Error filtering/sorting customers:', error);
+      return [];
+    }
   }, [customersData, search, statusFilter, sortField, sortDirection]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredAndSortedCustomers.length / ITEMS_PER_PAGE);
-  const paginatedCustomers = filteredAndSortedCustomers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  // Pagination with enhanced safety checks
+  const paginatedCustomers = useMemo(() => {
+    try {
+      if (!Array.isArray(filteredAndSortedCustomers)) {
+        return [];
+      }
+      
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = currentPage * ITEMS_PER_PAGE;
+      
+      return filteredAndSortedCustomers.slice(startIndex, endIndex);
+    } catch (error) {
+      console.error('Error paginating customers:', error);
+      return [];
+    }
+  }, [filteredAndSortedCustomers, currentPage]);
+
+  // Safe calculation of total pages
+  const totalPages = useMemo(() => {
+    try {
+      const totalItems = Array.isArray(filteredAndSortedCustomers) ? filteredAndSortedCustomers.length : 0;
+      return Math.ceil(totalItems / ITEMS_PER_PAGE);
+    } catch (error) {
+      console.error('Error calculating total pages:', error);
+      return 1;
+    }
+  }, [filteredAndSortedCustomers]);
 
   // Event handlers
   const handleSort = useCallback((field: keyof Customer) => {
@@ -238,16 +291,24 @@ export default function CustomersTable() {
   }, [sortField]);
 
   const handleExport = useCallback(() => {
-    const dataToExport = filteredAndSortedCustomers;
-    console.log("Exporting customers:", dataToExport);
-    // TODO: Implement CSV export logic
+    try {
+      const dataToExport = Array.isArray(filteredAndSortedCustomers) ? filteredAndSortedCustomers : [];
+      console.log("Exporting customers:", dataToExport);
+      // TODO: Implement CSV export logic
+    } catch (error) {
+      console.error('Error exporting customers:', error);
+    }
   }, [filteredAndSortedCustomers]);
 
   const handleDeleteCustomer = useCallback((customerId: string) => {
-    console.log("Deleting customer:", customerId);
-    setShowDeleteDialog(false);
-    setCustomerToDelete(null);
-    // TODO: Implement delete logic
+    try {
+      console.log("Deleting customer:", customerId);
+      setShowDeleteDialog(false);
+      setCustomerToDelete(null);
+      // TODO: Implement delete logic
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+    }
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -259,6 +320,10 @@ export default function CustomersTable() {
   // Loading and error states
   const isLoading = isCurrentLoading || isAllLoading;
   const isError = isCurrentError || isAllError;
+
+  // Safe array access for display
+  const safeFilteredCustomers = Array.isArray(filteredAndSortedCustomers) ? filteredAndSortedCustomers : [];
+  const safePaginatedCustomers = Array.isArray(paginatedCustomers) ? paginatedCustomers : [];
 
   return (
     <div className="space-y-4">
@@ -301,7 +366,7 @@ export default function CustomersTable() {
 
       {/* Results summary */}
       <div className="text-sm text-gray-600">
-        Showing {paginatedCustomers.length} of {filteredAndSortedCustomers.length} customers
+        Showing {safePaginatedCustomers.length} of {safeFilteredCustomers.length} customers
       </div>
 
       {/* Table */}
@@ -356,13 +421,13 @@ export default function CustomersTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedCustomers.length === 0 ? (
+              {safePaginatedCustomers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2">
                       <AlertCircle className="h-8 w-8 text-gray-400" />
                       <p className="text-gray-500">No customers found</p>
-                      {(search || statusFilter) && (
+                      {(search || statusFilter !== "all") && (
                         <Button variant="outline" size="sm" onClick={resetFilters}>
                           Clear filters
                         </Button>
@@ -371,90 +436,94 @@ export default function CustomersTable() {
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedCustomers.map((customer) => (
-                  <TableRow key={customer.id} className="hover:bg-gray-50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={customer.avatar_url || undefined} />
-                          <AvatarFallback>
-                            {getInitials(customer)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{getFullName(customer)}</div>
-                          <div className="text-sm text-gray-500">ID: {customer.id.slice(0, 8)}...</div>
+                safePaginatedCustomers.map((customer) => {
+                  if (!customer || !customer.id) return null;
+                  
+                  return (
+                    <TableRow key={customer.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={customer.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {getInitials(customer)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{getFullName(customer)}</div>
+                            <div className="text-sm text-gray-500">ID: {(customer.id || "").slice(0, 8)}...</div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Mail className="h-3 w-3 text-gray-400" />
+                            {customer.email || "No email"}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3 text-gray-400" />
+                            {customer.phone || "No phone"}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3 text-gray-400" />
-                          {customer.email || "No email"}
+                          <Calendar className="h-3 w-3 text-gray-400" />
+                          {formatDate(customer.created_at)}
                         </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3 text-gray-400" />
-                          {customer.phone || "No phone"}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-3 w-3 text-gray-400" />
-                        {formatDate(customer.created_at)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {customer.total_orders || 0}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(customer.total_spent)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={statusConfig[customer.status].variant}
-                        className={statusConfig[customer.status].color}
-                      >
-                        {statusConfig[customer.status].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Customer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Send Email
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setCustomerToDelete(customer.id);
-                              setShowDeleteDialog(true);
-                            }}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {customer.total_orders || 0}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(customer.total_spent)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={statusConfig[customer.status].variant}
+                          className={statusConfig[customer.status].color}
+                        >
+                          {statusConfig[customer.status].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setCustomerToDelete(customer.id);
+                                setShowDeleteDialog(true);
+                              }}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
