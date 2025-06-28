@@ -1,59 +1,30 @@
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify, createRemoteJWKSet } from "jose";
 
-// Clerk JWKS endpoint (replace with your actual domain if needed)
-const JWKS = createRemoteJWKSet(
-  new URL("https://clerk.reospicespowders.com/.well-known/jwks.json")
-);
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  const url = req.nextUrl.pathname;
 
-// Define protected routes
-const protectedRoutes = ["/dashboard", "/dashboard/", "/dashboard/", "/admin", "/admin/"];
-function isProtectedRoute(path: string) {
-  return protectedRoutes.some((route) => path === route || path.startsWith(route + "/"));
-}
+  // Only protect /dashboard and /admin routes
+  const isDashboard = url.startsWith("/dashboard");
+  const isAdmin = url.startsWith("/admin");
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  if (!isProtectedRoute(pathname)) {
-    return NextResponse.next();
-  }
-
-  // Get the JWT from the Clerk cookie
-  const token = req.cookies.get("__session")?.value;
-  if (!token) {
-    // Not logged in
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  try {
-    // Verify the JWT using Clerk's JWKS
-    const { payload } = await jwtVerify(token, JWKS, {
-      algorithms: ["RS256"],
-      issuer: "https://clerk.reospicespowders.com",
-    });
-
-    // Check for admin role in multiple possible locations
-    const anyPayload = payload as any;
-    const role =
-      anyPayload.role ||
-      anyPayload.publicMetadata?.role ||
-      anyPayload.sessionClaims?.role ||
-      anyPayload.sessionClaims?.publicMetadata?.role;
-
-    if (role !== "admin") {
-      // Not an admin
+  if (isDashboard || isAdmin) {
+    const authData = await auth();
+    // Not signed in? Redirect to home
+    if (!authData.userId) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-
-    // All good, allow access
-    return NextResponse.next();
-  } catch (err) {
-    // Invalid token or verification failed
-    return NextResponse.redirect(new URL("/", req.url));
+    // Not an admin? (Check Clerk JWT sessionClaims for admin_role)
+    const anyClaims = authData.sessionClaims as any;
+    if (anyClaims?.admin_role !== "admin") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
   }
-}
+
+  // Allow all other requests
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ["/dashboard", "/dashboard/:path*", "/admin", "/admin/:path*"],
