@@ -105,7 +105,7 @@ const ITEMS_PER_PAGE = 10;
 export default function CustomersTable() {
   // State management
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Customer>("first_name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -194,7 +194,7 @@ export default function CustomersTable() {
         fullName.toLowerCase().includes(search.toLowerCase()) ||
         (customer.email && customer.email.toLowerCase().includes(search.toLowerCase())) ||
         customer.id.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = !statusFilter || customer.status === statusFilter;
+      const matchesStatus = !statusFilter || statusFilter === "all" || customer.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
@@ -252,7 +252,7 @@ export default function CustomersTable() {
 
   const resetFilters = useCallback(() => {
     setSearch("");
-    setStatusFilter("");
+    setStatusFilter("all");
     setCurrentPage(1);
   }, []);
 
@@ -284,7 +284,7 @@ export default function CustomersTable() {
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
             <SelectItem value="blocked">Blocked</SelectItem>

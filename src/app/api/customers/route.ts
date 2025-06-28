@@ -1,67 +1,105 @@
+// app/api/customers/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { currentUser, auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import {
   getCustomerProfile,
   updateCustomerProfile,
   createOrUpdateCustomer,
-  getCustomerInteractions,
-  addCustomerInteraction,
   getAllCustomers,
 } from '@/utils/supabase/client';
 import { createClient } from '@/utils/supabase/server';
 
-// GET /api/customers - Get current user's customer profile
+// GET /api/customers - Admin only endpoint to get all customers
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const supabase = createClient();
-    // Check for admin query param
-    const url = new URL(req.url);
-    const isAll = url.searchParams.get('all') === '1';
-    // TEMP: Replace with real admin check
-    const isAdmin = userId === process.env.ADMIN_USER_ID;
-    if (isAll && isAdmin) {
-      const customers = await getAllCustomers(supabase);
-      return NextResponse.json(customers);
+
+    // Check if user has admin role in public metadata
+    const anyClaims = sessionClaims as any;
+    const isAdmin = anyClaims?.metadata?.role === 'admin' || 
+                   anyClaims?.role === 'admin';
+    
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
-    const customer = await getCustomerProfile(supabase, userId);
-    return NextResponse.json(customer);
+
+    const supabase = createClient();
+    const customers = await getAllCustomers(supabase);
+    
+    return NextResponse.json(customers);
+    
   } catch (error: any) {
+    console.error('GET /api/customers error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// PUT /api/customers - Update current user's customer profile
+// PUT /api/customers - Update customer profile (admin only)
 export async function PUT(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const updates = await req.json();
+
+    // Check if user has admin role
+    const anyClaims = sessionClaims as any;
+    const isAdmin = anyClaims?.metadata?.role === 'admin' || 
+                   anyClaims?.role === 'admin';
+    
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
+    const { customerId, ...updates } = await req.json();
+    
+    if (!customerId) {
+      return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
+    }
+
     const supabase = createClient();
-    const customer = await updateCustomerProfile(supabase, userId, updates);
+    const customer = await updateCustomerProfile(supabase, customerId, updates);
+    
     return NextResponse.json(customer);
+    
   } catch (error: any) {
+    console.error('PUT /api/customers error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// POST /api/customers - Create or upsert current user's customer profile
+// POST /api/customers - Create new customer (admin only)
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Check if user has admin role
+    const anyClaims = sessionClaims as any;
+    const isAdmin = anyClaims?.metadata?.role === 'admin' || 
+                   anyClaims?.role === 'admin';
+    
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
     const data = await req.json();
     const supabase = createClient();
-    const customer = await createOrUpdateCustomer(supabase, { ...data, clerk_user_id: userId });
+    
+    const customer = await createOrUpdateCustomer(supabase, data);
+    
     return NextResponse.json(customer);
+    
   } catch (error: any) {
+    console.error('POST /api/customers error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-} 
+}
