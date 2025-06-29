@@ -73,13 +73,21 @@ export async function POST(request: NextRequest) {
         country: customerData.country,
         status: 'active',
         source: 'checkout',
+        total_orders: 0,
+        total_spent: 0,
+        average_order_value: 0,
+        last_order_date: null,
         last_contact_date: new Date().toISOString(),
+        preferred_contact_method: 'email',
         notes: customerData.orderNote || null,
         custom_fields: {
           company: customerData.company || null,
         },
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+
+      console.log('Creating customer profile with data:', customerProfileData);
 
       // Upsert customer profile
       const { data: customer, error: customerError } = await supabase
@@ -93,10 +101,12 @@ export async function POST(request: NextRequest) {
 
       if (customerError) {
         console.error('Error creating/updating customer profile:', customerError);
+        console.error('Customer data that failed:', customerProfileData);
         return NextResponse.json({ error: customerError.message }, { status: 500 });
       }
 
       customerId = customer.id;
+      console.log('Customer profile created/updated successfully:', customerId);
 
       // Update customer order statistics
       const newTotalOrders = (customer.total_orders || 0) + 1;

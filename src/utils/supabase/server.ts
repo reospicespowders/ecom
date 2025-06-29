@@ -14,6 +14,9 @@ export const createClient = () => {
           const { getToken } = await auth();
           const supabaseToken = await getToken();
 
+          console.log('Supabase client - JWT token available:', !!supabaseToken);
+          console.log('Supabase client - JWT token length:', supabaseToken?.length || 0);
+
           const headers = new Headers(options?.headers);
           headers.set('Authorization', `Bearer ${supabaseToken}`);
           
