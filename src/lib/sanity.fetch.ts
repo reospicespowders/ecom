@@ -1,4 +1,4 @@
-import { client, getSafeClient } from './sanity.client';
+import { getSafeClient } from './sanity.client';
 import { categoriesQuery } from './sanity.queries';
 
 export async function fetchCategories() {
