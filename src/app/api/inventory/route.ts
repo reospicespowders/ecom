@@ -36,15 +36,18 @@ export async function GET(req: NextRequest) {
       query = query.eq("category", category);
     }
 
+    let data, error;
+
     if (lowStock) {
-      query = query.lte("current_stock", supabase.raw("low_stock_threshold"));
+      // Query the view for low stock products
+      ({ data, error } = await supabase
+        .from("low_stock_products")
+        .select("*")
+        .order("product_title", { ascending: true }));
+    } else {
+      // Query the main table
+      ({ data, error } = await query);
     }
-
-    if (search) {
-      query = query.or(`product_title.ilike.%${search}%,category.ilike.%${search}%`);
-    }
-
-    const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching inventory:', error);
