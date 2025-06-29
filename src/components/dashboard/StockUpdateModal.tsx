@@ -143,7 +143,7 @@ export default function StockUpdateModal({
                 placeholder="10"
               />
               <p className="text-xs text-muted-foreground">
-                Products will be marked as "Low Stock" when current stock falls below this number.
+                Products will be marked as &quot;Low Stock&quot; when current stock falls below this number.
               </p>
             </div>
 
