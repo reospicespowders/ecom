@@ -22,12 +22,6 @@ export async function GET(req: NextRequest) {
     .gte("created_at", firstOfMonth.toISOString());
   const revenueMonth = revenueData?.reduce((sum, o) => sum + (o.total_amount || 0), 0) ?? 0;
 
-  // Low stock products
-  const { data: lowStock } = await supabase
-    .from("product_inventory")
-    .select("*")
-    .lte("stock_quantity", 10); // Example threshold
-
   // Top selling products
   const { data: topProducts } = await supabase
     .from("order_items")
@@ -38,7 +32,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ordersToday,
     revenueMonth,
-    lowStock: lowStock || [],
     topProducts: topProducts || [],
   });
 } 

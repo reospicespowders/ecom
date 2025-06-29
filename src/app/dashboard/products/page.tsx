@@ -1,84 +1,91 @@
 'use client';
 
 import { useState } from 'react';
-import { useInventory } from '@/hooks/useInventory';
+import { useProductsWithInventory } from '@/hooks/useRealTimeInventory';
+import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+  Search, 
+  Filter, 
+  RefreshCw, 
   Package, 
   AlertTriangle, 
-  TrendingUp, 
-  Search,
-  Filter,
-  RefreshCw,
-  Plus,
-  Download,
+  TrendingUp,
+  TrendingDown,
+  Database,
   Upload
 } from 'lucide-react';
-import InventoryTable from '@/components/dashboard/InventoryTable';
-import StockUpdateModal from '@/components/dashboard/StockUpdateModal';
-import BulkImportModal from '@/components/dashboard/BulkImportModal';
+import { InventoryStatus } from '@/components/InventoryStatus';
+import { InventoryManager } from '@/components/admin/InventoryManager';
+import { isAdminUser } from '@/lib/auth-helpers';
 
-export default function ProductsInventoryPage() {
-  const {
-    inventory,
-    isLoading,
-    error,
-    isAdmin,
-    filters,
-    fetchInventory,
-    updateProductStock,
-    bulkUpdateInventory,
-    applyFilters,
-    getInventoryStats,
-    getCategories,
-  } = useInventory();
-
+export default function ProductsDashboardPage() {
+  const { user, isLoaded } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showLowStock, setShowLowStock] = useState(false);
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
-  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const stats = getInventoryStats();
-  const categories = getCategories();
+  // Check if user is admin
+  const isAdmin = isAdminUser(user);
+
+  const {
+    products,
+    loading,
+    error,
+    pagination,
+    stats,
+    refetch
+  } = useProductsWithInventory({
+    search: searchTerm || undefined,
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    lowStock: showLowStock,
+    page: 1,
+    limit: 50
+  });
 
   const handleSearch = () => {
-    applyFilters({
-      search: searchTerm,
-      category: selectedCategory === 'all' ? undefined : selectedCategory,
-      lowStock: showLowStock,
-    });
+    refetch();
   };
 
-  const handleStockUpdate = (product: any) => {
-    setSelectedProduct(product);
-    setIsStockModalOpen(true);
-  };
+  const handleSyncFromSanity = async () => {
+    if (!isAdmin) return;
 
-  const handleStockSave = async (updates: any) => {
     try {
-      await updateProductStock(selectedProduct.id, updates);
-      setIsStockModalOpen(false);
-      setSelectedProduct(null);
+      setIsSyncing(true);
+      const response = await fetch('/api/products/sync', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync products');
+      }
+
+      const result = await response.json();
+      alert(`Successfully synced ${result.synced} products from Sanity!`);
+      refetch();
     } catch (error) {
-      console.error('Error updating stock:', error);
+      console.error('Sync error:', error);
+      alert('Failed to sync products. Please try again.');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const handleBulkImport = async (products: any[]) => {
-    try {
-      await bulkUpdateInventory(products);
-      setIsBulkModalOpen(false);
-    } catch (error) {
-      console.error('Error bulk importing:', error);
-    }
+  const handleProductClick = (product: any) => {
+    setSelectedProduct(selectedProduct?.product._id === product.product._id ? null : product);
   };
+
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
   if (!isAdmin) {
     return (
@@ -86,7 +93,7 @@ export default function ProductsInventoryPage() {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Admin access required to view inventory management.
+            Admin access required to view products management.
           </AlertDescription>
         </Alert>
       </div>
@@ -109,25 +116,26 @@ export default function ProductsInventoryPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Products Inventory</h1>
+          <h1 className="text-3xl font-bold">Products Management</h1>
           <p className="text-muted-foreground">
-            Manage product stock levels and inventory operations
+            Manage product inventory and stock levels
           </p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setIsBulkModalOpen(true)}
+            onClick={handleSyncFromSanity}
+            disabled={isSyncing}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            Bulk Import
+            <Database className="h-4 w-4 mr-2" />
+            {isSyncing ? 'Syncing...' : 'Sync from Sanity'}
           </Button>
           <Button
             variant="outline"
-            onClick={() => fetchInventory(filters)}
-            disabled={isLoading}
+            onClick={refetch}
+            disabled={loading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -141,37 +149,37 @@ export default function ProductsInventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+            <div className="text-2xl font-bold">{stats?.totalProducts || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">In Stock</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats?.inStock || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.lowStockProducts}</div>
+            <div className="text-2xl font-bold text-orange-600">{stats?.lowStock || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.outOfStockProducts}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalStock.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-red-600">{stats?.outOfStock || 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -179,47 +187,45 @@ export default function ProductsInventoryPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
+          <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
+              <Label htmlFor="search">Search Products</Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search products..."
+                  id="search"
+                  placeholder="Search by title, SKU, or brand..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <Button onClick={handleSearch} size="icon">
+                <Button onClick={handleSearch} disabled={loading}>
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="category">Category</Label>
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="all">All Categories</option>
+                {stats?.filters?.categories?.map((category: string) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Stock Status</label>
+              <Label>Stock Status</Label>
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -235,7 +241,7 @@ export default function ProductsInventoryPage() {
             </div>
 
             <div className="flex items-end">
-              <Button onClick={handleSearch} className="w-full">
+              <Button onClick={handleSearch} className="w-full" disabled={loading}>
                 Apply Filters
               </Button>
             </div>
@@ -243,36 +249,79 @@ export default function ProductsInventoryPage() {
         </CardContent>
       </Card>
 
-      {/* Inventory Table */}
+      {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Inventory</CardTitle>
+          <CardTitle>Products Inventory</CardTitle>
         </CardHeader>
         <CardContent>
-          <InventoryTable
-            inventory={inventory}
-            isLoading={isLoading}
-            onStockUpdate={handleStockUpdate}
-          />
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {products.map((product: any) => (
+                <div
+                  key={product.product._id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => handleProductClick(product)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      {product.product.image && (
+                        <img
+                          src={product.product.image}
+                          alt={product.product.title}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-medium">{product.product.title}</h3>
+                        <p className="text-sm text-gray-600">
+                          SKU: {product.product.sku || 'N/A'} | 
+                          Brand: {product.product.brand || 'N/A'}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {product.product.category && (
+                            <Badge variant="outline">{product.product.category.name}</Badge>
+                          )}
+                          <InventoryStatus 
+                            productId={product.product._id} 
+                            showExactCount={true}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="font-medium">${product.product.price}</div>
+                      <div className="text-sm text-gray-600">
+                        {product.product.quantity && (
+                          <span>Sanity Qty: {product.product.quantity}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Inventory Manager */}
+                  {selectedProduct?.product._id === product.product._id && (
+                    <div className="mt-4 pt-4 border-t">
+                      <InventoryManager productId={product.product._id} />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {products.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No products found. Try adjusting your filters or sync from Sanity.
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Modals */}
-      <StockUpdateModal
-        isOpen={isStockModalOpen}
-        onClose={() => {
-          setIsStockModalOpen(false);
-          setSelectedProduct(null);
-        }}
-        product={selectedProduct}
-        onSave={handleStockSave}
-      />
-
-      <BulkImportModal
-        isOpen={isBulkModalOpen}
-        onClose={() => setIsBulkModalOpen(false)}
-        onImport={handleBulkImport}
-      />
     </div>
   );
 } 

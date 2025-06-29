@@ -1,0 +1,10 @@
+{
+  "jwtTemplates": {
+    "default": {
+      "claims": {
+        "role": "authenticated",
+        "admin_role": "{{user.public_metadata.admin_role}}"
+      }
+    }
+  }
+} 

@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaTachometerAlt, FaBox, FaUsers, FaShoppingCart, FaCog } from "react-icons/fa";
+import { FaTachometerAlt, FaUsers, FaShoppingCart, FaCog, FaBox } from "react-icons/fa";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
+  { href: "/dashboard/products", label: "Products", icon: <FaBox /> },
   { href: "/dashboard/orders", label: "Orders", icon: <FaShoppingCart /> },
   { href: "/dashboard/customers", label: "Customers", icon: <FaUsers /> },
-  { href: "/dashboard/products", label: "Products", icon: <FaBox /> },
   { href: "/dashboard/settings", label: "Settings", icon: <FaCog /> },
 ];
 

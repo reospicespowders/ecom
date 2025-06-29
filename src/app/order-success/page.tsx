@@ -47,8 +47,8 @@ const OrderSuccessPage = () => {
             
             <div className="space-y-4">
               <Link href="/shop" className="tp-btn-2 inline-block">
-                Continue Shopping
-              </Link>
+            Continue Shopping
+          </Link>
               <div className="text-sm text-gray-500">
                 <p>Need help? Contact us at support@example.com</p>
               </div>

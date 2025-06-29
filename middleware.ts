@@ -15,9 +15,19 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     if (!authData.userId) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    // Not an admin? (Check Clerk JWT sessionClaims for admin_role)
+    
+    // Check for proper role claims
     const anyClaims = authData.sessionClaims as any;
-    if (anyClaims?.admin_role !== "admin") {
+    const role = anyClaims?.role;
+    const adminRole = anyClaims?.admin_role;
+    
+    // Ensure user has authenticated role
+    if (role !== "authenticated") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+    
+    // For admin routes, check admin_role
+    if (isAdmin && adminRole !== "admin") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }

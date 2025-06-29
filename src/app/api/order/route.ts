@@ -193,11 +193,11 @@ export async function POST(request: NextRequest) {
 
     // Insert order items if order_items table exists
     try {
-      const { error: orderItemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+    const { error: orderItemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
 
-      if (orderItemsError) {
+    if (orderItemsError) {
         console.error('Error creating order items:', orderItemsError);
         // Don't fail the order if order items fail
       }

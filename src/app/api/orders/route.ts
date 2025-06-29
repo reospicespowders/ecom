@@ -18,9 +18,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("orders")
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("orders")
       .select(`
         *,
         customer:customers(
@@ -31,14 +31,14 @@ export async function GET(req: NextRequest) {
           phone
         )
       `)
-      .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false });
     
     if (error) {
       console.error('Error fetching orders:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
-    return NextResponse.json(data);
+  return NextResponse.json(data);
   } catch (error: any) {
     console.error('GET /api/orders error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
