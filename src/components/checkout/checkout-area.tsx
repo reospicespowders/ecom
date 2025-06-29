@@ -7,7 +7,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ErrorMsg from '../common/error-msg';
 import { IProductData } from '@/types/product-d-t';
-import { getProductById } from '@/lib/sanity.fetch'; 
+import { getProductById } from '@/lib/sanity.fetch';
+import { useCustomerCheckout } from '@/hooks/useCustomerCheckout';
+import { useUser } from '@clerk/nextjs';
 
 type FormData = {
    firstName: string;
@@ -47,6 +49,17 @@ const CheckoutArea = () => {
    const [placingOrder, setPlacingOrder] = useState(false);
    const router = useRouter();
 
+   // Customer profile integration
+   const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
+   const { 
+     customerProfile, 
+     isLoading: isCustomerLoading, 
+     error: customerError,
+     createOrUpdateProfile,
+     getFormDataFromProfile,
+     hasProfile 
+   } = useCustomerCheckout();
+
    async function fetchCartDetails() {
       try {
          const response = await fetch('/api/cart');
@@ -77,37 +90,93 @@ const CheckoutArea = () => {
       setTotal(newTotal);
    }, [cartItems]);
  
-   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+   const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm<FormData>({
      resolver: yupResolver(schema),
    });
+
+   // Auto-populate form with customer profile data
+   useEffect(() => {
+     if (hasProfile && customerProfile && !isCustomerLoading) {
+       const formData = getFormDataFromProfile();
+       Object.entries(formData).forEach(([key, value]) => {
+         if (value) {
+           setValue(key as keyof FormData, value);
+         }
+       });
+     }
+   }, [hasProfile, customerProfile, isCustomerLoading, setValue, getFormDataFromProfile]);
+
+   // Auto-populate email from Clerk user data
+   useEffect(() => {
+     if (isUserLoaded && isSignedIn && user && !hasProfile) {
+       const email = user.emailAddresses?.[0]?.emailAddress;
+       const firstName = user.firstName;
+       const lastName = user.lastName;
+       
+       if (email) setValue('email', email);
+       if (firstName) setValue('firstName', firstName);
+       if (lastName) setValue('lastName', lastName);
+     }
+   }, [isUserLoaded, isSignedIn, user, hasProfile, setValue]);
 
    const onSubmit = handleSubmit(async (data) => {
       setPlacingOrder(true);
       try {
+         // Create or update customer profile first
+         let customerProfile = null;
+         try {
+            customerProfile = await createOrUpdateProfile(data);
+         } catch (profileError) {
+            console.error('Error creating/updating customer profile:', profileError);
+            // Continue with order even if profile creation fails
+         }
+
+         // Place order with customer data
          const response = await fetch('/api/order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shipping_address: data }),
+            body: JSON.stringify({ 
+               orderDetails: { 
+                  shipping_cost: typeof shipCost === 'number' ? shipCost : 0,
+                  status: 'pending',
+                  payment_status: 'pending',
+               },
+               customerData: data 
+            }),
          });
          const result = await response.json();
          if (!response.ok) {
             throw new Error(result.error || 'Failed to place order');
          }
          reset();
-         router.push(`/order-success?orderId=${result.orderId}`);
+         router.push(`/order-success?orderId=${result.orderId}&orderNumber=${result.orderNumber}`);
       } catch (error) {
-         console.error(error);
+         console.error('Checkout error:', error);
          // Handle error, maybe show a notification
       } finally {
          setPlacingOrder(false);
       }
    });
 
-  if (loading) {
+   // Show loading state while customer data is loading
+   if (loading || (isUserLoaded && isSignedIn && isCustomerLoading)) {
     return <div className="text-center pt-100 pb-100">Loading...</div>;
   }
+
+   // Show sign-in prompt if not authenticated
+   if (isUserLoaded && !isSignedIn) {
+     return (
+       <div className="text-center pt-100 pb-100">
+         <h3>Please sign in to continue</h3>
+         <p className="mb-4">You need to be signed in to complete your checkout.</p>
+         <Link href="/sign-in" className="tp-btn-2">
+           Sign In
+         </Link>
+       </div>
+     );
+   }
    
-  return (
+   return (
     <section className="checkout-area pb-50">
       <div className="container">
         {cartItems.length === 0 && !loading && (
@@ -122,18 +191,33 @@ const CheckoutArea = () => {
               <div className="col-lg-6 col-md-12">
                  <div className="checkbox-form">
                     <h3>Billing Details</h3>
+                    {hasProfile && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+                        <p className="text-sm text-green-700 mb-0">
+                          ✓ Your profile information has been loaded. You can update it below if needed.
+                        </p>
+                      </div>
+                    )}
+                    {customerError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                        <p className="text-sm text-red-700 mb-0">
+                          ⚠️ {customerError}
+                        </p>
+                      </div>
+                    )}
                     <div className="row">
                           <div className="col-md-12">
                              <div className="country-select">
                                 <label>Country <span className="required">*</span></label>
                                 <select id='country' {...register("country")}>
-                                      <option defaultValue="united-states">United States</option>
-                                      <option defaultValue="algeria">Algeria</option>
-                                      <option defaultValue="canada">Canada</option>
-                                      <option defaultValue="germany">Germany</option>
-                                      <option defaultValue="england">England</option>
-                                      <option defaultValue="qatar">Qatar</option>
-                                      <option defaultValue="dominican-republic">Dominican Republic</option>
+                                      <option value="">Select Country</option>
+                                      <option value="united-states">United States</option>
+                                      <option value="algeria">Algeria</option>
+                                      <option value="canada">Canada</option>
+                                      <option value="germany">Germany</option>
+                                      <option value="england">England</option>
+                                      <option value="qatar">Qatar</option>
+                                      <option value="dominican-republic">Dominican Republic</option>
                                 </select>
                                 <ErrorMsg msg={errors.country?.message!} />
                              </div>
