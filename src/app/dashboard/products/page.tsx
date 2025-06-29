@@ -39,7 +39,7 @@ export default function ProductsInventoryPage() {
   } = useInventory();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [showLowStock, setShowLowStock] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function ProductsInventoryPage() {
   const handleSearch = () => {
     applyFilters({
       search: searchTerm,
-      category: selectedCategory,
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
       lowStock: showLowStock,
     });
   };
@@ -208,7 +208,7 @@ export default function ProductsInventoryPage() {
                   <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All categories</SelectItem>
+                  <SelectItem value="all">All categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
