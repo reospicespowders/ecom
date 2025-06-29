@@ -1,264 +1,312 @@
-import { client } from './sanity.client';
+import { client, getSafeClient } from './sanity.client';
 import { categoriesQuery } from './sanity.queries';
 
 export async function fetchCategories() {
-  return await client.fetch(categoriesQuery);
+  try {
+    const safeClient = getSafeClient();
+    return await safeClient.fetch(categoriesQuery);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
 }
 
 export async function getProducts() {
-  const query = `*[_type == "product"] {
-    _id,
-    id,
-    sku,
-    title,
-    price,
-    sale_price,
-    "image": image.asset->url,
-    category->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "product"] {
       _id,
       id,
-      name,
-      slug
-    },
-    quantity,
-    unit,
-    "gallery": gallery[].asset->url,
-    description,
-    videoId,
-    orderQuantity,
-    productInfoList,
-    additionalInfo,
-    reviews,
-    tags,
-    status,
-    brand,
-    sold,
-    created_at,
-    updated_at,
-    color,
-    offerDate,
-    "slug": slug.current,
-    "reviews": reviews[]->{
-      _id,
-      reviewerName,
-      reviewerEmail,
-      comment,
-      rating,
-      approved,
-      _createdAt
-    }[approved == true]
-  }`;
+      sku,
+      title,
+      price,
+      sale_price,
+      "image": image.asset->url,
+      category->{
+        _id,
+        id,
+        name,
+        slug
+      },
+      quantity,
+      unit,
+      "gallery": gallery[].asset->url,
+      description,
+      videoId,
+      orderQuantity,
+      productInfoList,
+      additionalInfo,
+      reviews,
+      tags,
+      status,
+      brand,
+      sold,
+      created_at,
+      updated_at,
+      color,
+      offerDate,
+      "slug": slug.current,
+      "reviews": reviews[]->{
+        _id,
+        reviewerName,
+        reviewerEmail,
+        comment,
+        rating,
+        approved,
+        _createdAt
+      }[approved == true]
+    }`;
 
-  return client.fetch(query);
+    return safeClient.fetch(query);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
 }
 
 export async function getProductBySlug(slug: string) {
-  const query = `*[_type == "product" && slug.current == $slug][0] {
-    _id,
-    id,
-    sku,
-    title,
-    price,
-    sale_price,
-    "image": image.asset->url,
-    category->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "product" && slug.current == $slug][0] {
       _id,
       id,
-      name,
-      slug
-    },
-    quantity,
-    unit,
-    "gallery": gallery[].asset->url,
-    description,
-    videoId,
-    orderQuantity,
-    productInfoList,
-    additionalInfo,
-    reviews,
-    tags,
-    status,
-    brand,
-    sold,
-    created_at,
-    updated_at,
-    color,
-    offerDate,
-    "slug": slug.current,
-    "reviews": reviews[]->{
-      _id,
-      reviewerName,
-      reviewerEmail,
-      comment,
-      rating,
-      approved,
-      _createdAt
-    }[approved == true]
-  }`;
+      sku,
+      title,
+      price,
+      sale_price,
+      "image": image.asset->url,
+      category->{
+        _id,
+        id,
+        name,
+        slug
+      },
+      quantity,
+      unit,
+      "gallery": gallery[].asset->url,
+      description,
+      videoId,
+      orderQuantity,
+      productInfoList,
+      additionalInfo,
+      reviews,
+      tags,
+      status,
+      brand,
+      sold,
+      created_at,
+      updated_at,
+      color,
+      offerDate,
+      "slug": slug.current,
+      "reviews": reviews[]->{
+        _id,
+        reviewerName,
+        reviewerEmail,
+        comment,
+        rating,
+        approved,
+        _createdAt
+      }[approved == true]
+    }`;
 
-  return client.fetch(query, { slug });
+    return safeClient.fetch(query, { slug });
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
+    return null;
+  }
 }
 
 export async function getProductById(id: string) {
-  const query = `*[_type == "product" && _id == $id][0] {
-    _id,
-    id,
-    sku,
-    title,
-    price,
-    sale_price,
-    "image": image.asset->url,
-    category->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "product" && _id == $id][0] {
       _id,
       id,
-      name,
-      slug
-    },
-    quantity,
-    unit,
-    "gallery": gallery[].asset->url,
-    description,
-    videoId,
-    orderQuantity,
-    productInfoList,
-    additionalInfo,
-    reviews,
-    tags,
-    status,
-    brand,
-    sold,
-    created_at,
-    updated_at,
-    color,
-    offerDate,
-    "slug": slug.current,
-    "reviews": reviews[]->{
-      _id,
-      reviewerName,
-      reviewerEmail,
-      comment,
-      rating,
-      approved,
-      _createdAt
-    }[approved == true]
-  }`;
+      sku,
+      title,
+      price,
+      sale_price,
+      "image": image.asset->url,
+      category->{
+        _id,
+        id,
+        name,
+        slug
+      },
+      quantity,
+      unit,
+      "gallery": gallery[].asset->url,
+      description,
+      videoId,
+      orderQuantity,
+      productInfoList,
+      additionalInfo,
+      reviews,
+      tags,
+      status,
+      brand,
+      sold,
+      created_at,
+      updated_at,
+      color,
+      offerDate,
+      "slug": slug.current,
+      "reviews": reviews[]->{
+        _id,
+        reviewerName,
+        reviewerEmail,
+        comment,
+        rating,
+        approved,
+        _createdAt
+      }[approved == true]
+    }`;
 
-  return client.fetch(query, { id });
+    return safeClient.fetch(query, { id });
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    return null;
+  }
 }
 
 export async function getProductsByCategory(categorySlug: string) {
-  const query = `*[_type == "product" && category->slug.current == $categorySlug] {
-    _id,
-    id,
-    sku,
-    title,
-    price,
-    sale_price,
-    "image": image.asset->url,
-    category->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "product" && category->slug.current == $categorySlug] {
       _id,
       id,
-      name,
-      slug
-    },
-    quantity,
-    unit,
-    "gallery": gallery[].asset->url,
-    description,
-    videoId,
-    orderQuantity,
-    productInfoList,
-    additionalInfo,
-    reviews,
-    tags,
-    status,
-    brand,
-    sold,
-    created_at,
-    updated_at,
-    color,
-    offerDate,
-    "slug": slug.current,
-    "reviews": reviews[]->{
-      _id,
-      reviewerName,
-      reviewerEmail,
-      comment,
-      rating,
-      approved,
-      _createdAt
-    }[approved == true]
-  }`;
+      sku,
+      title,
+      price,
+      sale_price,
+      "image": image.asset->url,
+      category->{
+        _id,
+        id,
+        name,
+        slug
+      },
+      quantity,
+      unit,
+      "gallery": gallery[].asset->url,
+      description,
+      videoId,
+      orderQuantity,
+      productInfoList,
+      additionalInfo,
+      reviews,
+      tags,
+      status,
+      brand,
+      sold,
+      created_at,
+      updated_at,
+      color,
+      offerDate,
+      "slug": slug.current,
+      "reviews": reviews[]->{
+        _id,
+        reviewerName,
+        reviewerEmail,
+        comment,
+        rating,
+        approved,
+        _createdAt
+      }[approved == true]
+    }`;
 
-  return client.fetch(query, { categorySlug });
+    return safeClient.fetch(query, { categorySlug });
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    return [];
+  }
 }
 
 export async function getProductsByBrand(brandName: string) {
-  const query = `*[_type == "product" && brand match $brandName] {
-    _id,
-    id,
-    sku,
-    title,
-    price,
-    sale_price,
-    "image": image.asset->url,
-    category->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "product" && brand match $brandName] {
       _id,
       id,
-      name,
-      "slug": slug.current
-    },
-    quantity,
-    unit,
-    "gallery": gallery[].asset->url,
-    description,
-    videoId,
-    orderQuantity,
-    productInfoList,
-    additionalInfo,
-    reviews,
-    tags,
-    status,
-    brand,
-    sold,
-    created_at,
-    updated_at,
-    color,
-    offerDate,
-    "slug": slug.current,
-    "reviews": reviews[]->{
-      _id,
-      reviewerName,
-      reviewerEmail,
-      comment,
-      rating,
-      approved,
-      _createdAt
-    }[approved == true]
-  }`;
+      sku,
+      title,
+      price,
+      sale_price,
+      "image": image.asset->url,
+      category->{
+        _id,
+        id,
+        name,
+        "slug": slug.current
+      },
+      quantity,
+      unit,
+      "gallery": gallery[].asset->url,
+      description,
+      videoId,
+      orderQuantity,
+      productInfoList,
+      additionalInfo,
+      reviews,
+      tags,
+      status,
+      brand,
+      sold,
+      created_at,
+      updated_at,
+      color,
+      offerDate,
+      "slug": slug.current,
+      "reviews": reviews[]->{
+        _id,
+        reviewerName,
+        reviewerEmail,
+        comment,
+        rating,
+        approved,
+        _createdAt
+      }[approved == true]
+    }`;
 
-  return client.fetch(query, { brandName });
+    return safeClient.fetch(query, { brandName });
+  } catch (error) {
+    console.error('Error fetching products by brand:', error);
+    return [];
+  }
 }
 
 export async function getCategories() {
-  const query = `*[_type == "category"] {
-    _id,
-    id,
-    name,
-    "img": img.asset->url,
-    slug,
-    parent,
-    children[]->{
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "category"] {
       _id,
       id,
       name,
       "img": img.asset->url,
-      slug
-    },
-    product_id
-  }`;
+      slug,
+      parent,
+      children[]->{
+        _id,
+        id,
+        name,
+        "img": img.asset->url,
+        slug
+      },
+      product_id
+    }`;
 
-  return client.fetch(query);
+    return safeClient.fetch(query);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
 }
 
 export async function submitReview(reviewData: {
@@ -268,33 +316,30 @@ export async function submitReview(reviewData: {
   rating: number;
   productId: string;
 }) {
-  const { reviewerName, reviewerEmail, comment, rating, productId } = reviewData;
-
-  const newReview = {
-    _type: 'review',
-    reviewerName,
-    reviewerEmail,
-    comment,
-    rating,
-    product: {
-      _ref: productId,
-      _type: 'reference',
-    },
-    approved: false, // Reviews will be pending approval by default
-  };
-
   try {
-    const createdReview = await client.create(newReview);
+    const safeClient = getSafeClient();
+    const { reviewerName, reviewerEmail, comment, rating, productId } = reviewData;
+
+    const newReview = {
+      _type: 'review',
+      reviewerName,
+      reviewerEmail,
+      comment,
+      rating,
+      product: {
+        _ref: productId,
+        _type: 'reference',
+      },
+      approved: false, // Reviews will be pending approval by default
+    };
+
+    const createdReview = await safeClient.create(newReview);
 
     // Patch the product to add a reference to the new review
-    await client
+    await safeClient
       .patch(productId)
       .setIfMissing({ reviews: [] })
-      .append('reviews', [{
-        _ref: createdReview._id,
-        _type: 'reference',
-        _key: createdReview._id, // Add _key for array stability
-      }])
+      .append('reviews', [createdReview._id])
       .commit();
 
     return createdReview;
@@ -305,31 +350,45 @@ export async function submitReview(reviewData: {
 }
 
 export async function getBlogByCategoryAndSlug(categorySlug: string, blogSlug: string) {
-  const query = `*[_type == "blog" && slug.current == $blogSlug && category->slug.current == $categorySlug][0]{
-    _id,
-    title,
-    slug,
-    excerpt,
-    content,
-    "mainImage": mainImage.asset->url,
-    author,
-    publishedAt,
-    category->{_id, title, slug}
-  }`;
-  return client.fetch(query, { blogSlug, categorySlug });
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "blog" && slug.current == $blogSlug && category->slug.current == $categorySlug][0]{
+      _id,
+      title,
+      slug,
+      excerpt,
+      content,
+      "mainImage": mainImage.asset->url,
+      author,
+      publishedAt,
+      category->{_id, title, slug}
+    }`;
+    return safeClient.fetch(query, { blogSlug, categorySlug });
+  } catch (error) {
+    console.error('Error fetching blog by category and slug:', error);
+    return null;
+  }
 }
 
 export async function getLatestBlogsForHome(limit = 4) {
-  const query = `*[_type == "blog"] | order(publishedAt desc)[0...$limit]{
-    _id,
-    title,
-    slug,
-    excerpt,
-    content,
-    "mainImage": mainImage.asset->url,
-    author,
-    publishedAt,
-    category->{title, slug}
-  }`;
-  return client.fetch(query, { limit });
+  try {
+    const safeClient = getSafeClient();
+    
+    const query = `*[_type == "blog"] | order(publishedAt desc)[0...$limit]{
+      _id,
+      title,
+      slug,
+      excerpt,
+      content,
+      "mainImage": mainImage.asset->url,
+      author,
+      publishedAt,
+      category->{title, slug}
+    }`;
+    return safeClient.fetch(query, { limit });
+  } catch (error) {
+    console.error('Error fetching latest blogs:', error);
+    return [];
+  }
 } 

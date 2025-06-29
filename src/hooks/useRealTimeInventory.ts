@@ -117,7 +117,7 @@ export function useRealTimeInventory(productId: string) {
         supabase.removeChannel(newChannel);
       }
     };
-  }, [productId, supabase, fetchInventory]);
+  }, [productId, supabase, fetchInventory, data]);
 
   // Reserve stock function
   const reserveStock = useCallback(async (quantity: number, orderId?: string) => {
