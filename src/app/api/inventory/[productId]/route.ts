@@ -15,7 +15,7 @@ export async function GET(
 
     // Check for admin role
     const anyClaims = sessionClaims as any;
-    const adminRole = anyClaims?.admin_role;
+    const adminRole = anyClaims?.public_metadata?.admin_role || anyClaims?.admin_role;
     
     if (adminRole !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
@@ -74,7 +74,7 @@ export async function PATCH(
 
     // Check for admin role
     const anyClaims = sessionClaims as any;
-    const adminRole = anyClaims?.admin_role;
+    const adminRole = anyClaims?.public_metadata?.admin_role || anyClaims?.admin_role;
     
     if (adminRole !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
@@ -89,64 +89,25 @@ export async function PATCH(
 
     const supabase = createClient();
     
-    // Get current inventory data
-    const { data: currentInventory, error: fetchError } = await supabase
-      .from("product_inventory")
-      .select("*")
-      .eq("id", productId)
-      .single();
+    // Use a transaction for better consistency
+    const { data: result, error: transactionError } = await supabase.rpc('update_inventory_with_movement', {
+      p_product_id: productId,
+      p_new_stock: updates.current_stock,
+      p_new_threshold: updates.low_stock_threshold,
+      p_reason: updates.reason || 'Manual stock adjustment',
+      p_admin_user_id: userId
+    });
 
-    if (fetchError) {
-      console.error('Error fetching current inventory:', fetchError);
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    if (transactionError) {
+      console.error('Error in inventory update transaction:', transactionError);
+      return NextResponse.json({ error: transactionError.message }, { status: 500 });
     }
 
-    // Calculate stock change
-    const stockChange = updates.current_stock - currentInventory.current_stock;
-    
-    // Prepare inventory update
-    const inventoryUpdate = {
-      current_stock: updates.current_stock,
-      low_stock_threshold: updates.low_stock_threshold,
-      last_updated: new Date().toISOString(),
-    };
-
-    // Update inventory
-    const { data: updatedInventory, error: updateError } = await supabase
-      .from("product_inventory")
-      .update(inventoryUpdate)
-      .eq("id", productId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Error updating inventory:', updateError);
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-
-    // Log movement if stock changed
-    if (stockChange !== 0) {
-      const movementData = {
-        product_id: productId,
-        movement_type: 'manual',
-        quantity: stockChange,
-        reason: updates.reason || 'Manual stock adjustment',
-        admin_user_id: userId,
-        previous_stock: currentInventory.current_stock,
-        new_stock: updates.current_stock,
-      };
-
-      const { error: movementError } = await supabase
-        .from("inventory_movements")
-        .insert(movementData);
-
-      if (movementError) {
-        console.error('Error logging movement:', movementError);
-        // Don't fail the update if movement logging fails
-      }
+    if (!result || result.length === 0) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    return NextResponse.json(updatedInventory);
+    return NextResponse.json(result[0]);
   } catch (error: any) {
     console.error('PATCH /api/inventory/[productId] error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

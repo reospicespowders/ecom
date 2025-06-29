@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     // Check for admin role
     const anyClaims = sessionClaims as any;
-    const adminRole = anyClaims?.admin_role;
+    const adminRole = anyClaims?.public_metadata?.admin_role || anyClaims?.admin_role;
     
     if (adminRole !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
