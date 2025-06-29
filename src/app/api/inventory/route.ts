@@ -2,20 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { auth } from '@clerk/nextjs/server';
 
+// Helper function to check admin access
+async function checkAdminAccess() {
+  const { userId, sessionClaims } = await auth();
+  
+  if (!userId) {
+    return { authorized: false, error: 'Unauthorized', status: 401 };
+  }
+
+  // Check for admin role in public_metadata (matches RLS policy)
+  const anyClaims = sessionClaims as any;
+  const adminRole = anyClaims?.public_metadata?.admin_role || anyClaims?.admin_role;
+  
+  if (adminRole !== 'admin') {
+    return { authorized: false, error: 'Forbidden - Admin access required', status: 403 };
+  }
+
+  return { authorized: true, userId };
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const { userId, sessionClaims } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check for admin role in JWT session claims
-    const anyClaims = sessionClaims as any;
-    const adminRole = anyClaims?.admin_role;
-    
-    if (adminRole !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    // Check admin access
+    const authCheck = await checkAdminAccess();
+    if (!authCheck.authorized) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const supabase = createClient();
@@ -34,6 +45,10 @@ export async function GET(req: NextRequest) {
     // Apply filters
     if (category) {
       query = query.eq("category", category);
+    }
+
+    if (search) {
+      query = query.ilike("product_title", `%${search}%`);
     }
 
     let data, error;
@@ -63,18 +78,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, sessionClaims } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check for admin role
-    const anyClaims = sessionClaims as any;
-    const adminRole = anyClaims?.admin_role;
-    
-    if (adminRole !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    // Check admin access
+    const authCheck = await checkAdminAccess();
+    if (!authCheck.authorized) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const { products } = await req.json();
@@ -89,7 +96,7 @@ export async function POST(req: NextRequest) {
     const inventoryData = products.map((product: any) => ({
       sanity_product_id: product.sanity_product_id,
       product_title: product.product_title,
-      category: product.category,
+      category: product.category || null,
       current_stock: product.current_stock || 0,
       low_stock_threshold: product.low_stock_threshold || 10,
     }));
@@ -120,14 +127,39 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const supabase = createClient();
-  const body = await req.json();
-  const { id, ...update } = body;
-  const { data, error } = await supabase
-    .from("product_inventory")
-    .update(update)
-    .eq("id", id)
-    .select();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data[0]);
+  try {
+    // ✅ Added missing auth check
+    const authCheck = await checkAdminAccess();
+    if (!authCheck.authorized) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
+
+    const supabase = createClient();
+    const body = await req.json();
+    const { id, ...update } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("product_inventory")
+      .update(update)
+      .eq("id", id)
+      .select();
+    
+    if (error) {
+      console.error('Error updating inventory:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(data[0]);
+  } catch (error: any) {
+    console.error('PUT /api/inventory error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 } 
