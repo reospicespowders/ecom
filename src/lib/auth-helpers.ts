@@ -13,7 +13,7 @@ export function isAdminUser(user: any): boolean {
   
   const role = user.publicMetadata?.role;
   const adminRole = user.publicMetadata?.admin_role;
-  
+  debugger
   return role === 'authenticated' && adminRole === 'admin';
 }
 
