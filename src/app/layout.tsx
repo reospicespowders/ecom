@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Jost, Quicksand,Schoolbell } from "next/font/google";
 import { Providers } from "@/redux/provider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { SupabaseProvider } from "@/contexts/SupabaseProvider";
 import "./global.scss";
 
 const body = Jost({
@@ -69,7 +70,9 @@ export default function RootLayout({
           signUpUrl="/login"
           afterSignOutUrl="/"
       >
-        <Providers>{children}</Providers>
+        <SupabaseProvider>
+          <Providers>{children}</Providers>
+        </SupabaseProvider>
         </ClerkProvider>
       </body>
     </html>

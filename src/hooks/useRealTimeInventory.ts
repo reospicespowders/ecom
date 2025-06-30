@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useClerkSupabaseClient } from '@/utils/supabase/client';
+import { useSupabase } from '@/contexts/SupabaseProvider';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface InventoryData {
@@ -51,10 +51,11 @@ export function useRealTimeInventory(productId: string) {
   const [error, setError] = useState<string | null>(null);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
-  const supabase = useClerkSupabaseClient();
+  const supabase = useSupabase();
 
   // Fetch initial data
   const fetchInventory = useCallback(async () => {
+    if (!supabase) return; // Wait for supabase client
     try {
       setLoading(true);
       const response = await fetch(`/api/products/${productId}`);
@@ -72,10 +73,11 @@ export function useRealTimeInventory(productId: string) {
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [productId, supabase]);
 
   // Set up real-time subscription
   useEffect(() => {
+    if (!supabase) return; // Wait for supabase client
     fetchInventory();
 
     const newChannel = supabase
@@ -113,7 +115,7 @@ export function useRealTimeInventory(productId: string) {
     setChannel(newChannel);
 
     return () => {
-      if (newChannel) {
+      if (newChannel && supabase) {
         supabase.removeChannel(newChannel);
       }
     };
@@ -215,10 +217,10 @@ export function useRealTimeInventoryList(productIds: string[]) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = useClerkSupabaseClient();
+  const supabase = useSupabase();
 
   useEffect(() => {
-    if (productIds.length === 0) return;
+    if (productIds.length === 0 || !supabase) return; // Wait for supabase client
 
     // Fetch initial data for all products
     const fetchAllInventory = async () => {
@@ -299,15 +301,17 @@ export function useProductsWithInventory(filters?: {
   page?: number;
   limit?: number;
 }) {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductWithInventory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
 
-  const supabase = useClerkSupabaseClient();
+  const supabase = useSupabase();
 
-  const fetchProducts = useCallback(async () => {
+  const refetch = useCallback(async () => {
+    if (!supabase) return; // Wait for supabase client
+
     try {
       setLoading(true);
       
@@ -335,18 +339,11 @@ export function useProductsWithInventory(filters?: {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, supabase]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    refetch();
+  }, [refetch]);
 
-  return {
-    products,
-    loading,
-    error,
-    pagination,
-    stats,
-    refetch: fetchProducts
-  };
+  return { products, loading, error, pagination, stats, refetch };
 } 
