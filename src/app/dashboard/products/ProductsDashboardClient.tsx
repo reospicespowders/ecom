@@ -35,7 +35,7 @@ export function ProductsDashboardClient() {
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Check if user is admin
-  const isAdmin = isAdminUser(user);
+  const isAdmin = user?.publicMetadata?.admin_role === "admin"
 
   const {
     products,
