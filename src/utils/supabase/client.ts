@@ -94,4 +94,4 @@ export async function addCustomerInteraction(
     .single();
   if (error) throw error;
   return data;
-} 
+}

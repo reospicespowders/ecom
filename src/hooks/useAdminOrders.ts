@@ -87,7 +87,7 @@ export function useAdminOrders() {
       mutate(
         (currentOrders) =>
           currentOrders?.map((order) =>
-            order.id === orderId ? { ...order, ...updatedOrder } : order
+          order.id === orderId ? { ...order, ...updatedOrder } : order
           ),
         false
       );
@@ -122,7 +122,7 @@ export function useAdminOrders() {
       mutate(
         (currentOrders) =>
           currentOrders?.map((order) =>
-            order.id === orderId ? { ...order, ...updatedOrder } : order
+          order.id === orderId ? { ...order, ...updatedOrder } : order
           ),
         false
       );

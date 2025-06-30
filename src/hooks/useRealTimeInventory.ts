@@ -349,48 +349,57 @@ export function useProductsWithInventory(filters?: {
   const [products, setProducts] = useState<ProductWithInventory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [pagination, setPagination] = useState({});
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    inStock: 0,
+    lowStock: 0,
+    outOfStock: 0,
+  });
 
-  const supabase = useSupabase();
-
-  const refetch = useCallback(async () => {
-    if (!supabase) return; // Wait for supabase client
-
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-
       const params = new URLSearchParams();
       if (filters?.search) params.append('search', filters.search);
       if (filters?.category) params.append('category', filters.category);
-      if (filters?.lowStock) params.append('lowStock', filters.lowStock.toString());
+      if (filters?.lowStock) params.append('lowStock', 'true');
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
-      
-      const response = await fetch(`/api/shop/products?${params.toString()}`);
-      
+
+      const response = await fetch(`/api/products?${params.toString()}`);
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to fetch products:", errorText);
-        throw new Error(`Failed to fetch products: ${response.statusText}`);
+        throw new Error('Failed to fetch products');
       }
-      
       const result = await response.json();
+      
       setProducts(result.products || []);
-      setPagination(result.pagination);
-      setStats(result.stats);
+      setPagination({
+        total: result.total,
+        count: result.count,
+        page: filters?.page,
+        limit: filters?.limit,
+      });
+      // Simple stats calculation on the client
+      const inStock = result.products.filter((p: any) => p.inventory?.in_stock).length;
+      const lowStockCount = result.products.filter((p: any) => p.inventory?.low_stock).length;
+      setStats({
+        totalProducts: result.total,
+        inStock: inStock,
+        lowStock: lowStockCount,
+        outOfStock: result.total - inStock,
+      });
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
-      console.error('Error fetching products:', err);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [filters, supabase]);
+  }, [filters]);
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    fetchProducts();
+  }, [fetchProducts]);
 
-  return { products, loading, error, pagination, stats, refetch };
+  return { products, loading, error, pagination, stats, refetch: fetchProducts };
 } 

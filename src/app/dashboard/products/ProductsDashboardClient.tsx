@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useProductsWithInventory } from '@/hooks/useRealTimeInventory';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import Image from 'next/image';
 export function ProductsDashboardClient() {
   const { user, isLoaded } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showLowStock, setShowLowStock] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -37,6 +39,14 @@ export function ProductsDashboardClient() {
   // Check if user is admin
   const isAdmin = user?.publicMetadata?.admin_role === "admin"
 
+  const filterOptions = useMemo(() => ({
+    search: debouncedSearchTerm || undefined,
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    lowStock: showLowStock,
+    page: 1,
+    limit: 50
+  }), [debouncedSearchTerm, selectedCategory, showLowStock]);
+
   const {
     products,
     loading,
@@ -44,13 +54,7 @@ export function ProductsDashboardClient() {
     pagination,
     stats,
     refetch
-  } = useProductsWithInventory({
-    search: searchTerm || undefined,
-    category: selectedCategory === 'all' ? undefined : selectedCategory,
-    lowStock: showLowStock,
-    page: 1,
-    limit: 50
-  });
+  } = useProductsWithInventory(filterOptions);
 
   const handleSearch = () => {
     refetch();
@@ -200,7 +204,6 @@ export function ProductsDashboardClient() {
                   placeholder="Search by title, SKU, or brand..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <Button onClick={handleSearch} disabled={loading}>
                   <Search className="h-4 w-4" />
