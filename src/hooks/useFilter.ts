@@ -4,7 +4,6 @@ import { useAppSelector } from '@/redux/hook';
 import { averageRating } from '@/utils/utils';
 import { IProductData } from '@/types/product-d-t';
 import { useSearchParams } from 'next/navigation';
-import { getProducts, getProductsByCategory } from '@/lib/sanity.fetch';
 import React from 'react';
 
 export function useProductFilter(initialCategorySlug?: string) {
@@ -13,16 +12,13 @@ export function useProductFilter(initialCategorySlug?: string) {
   const searchParams = useSearchParams();
   const searchText = searchParams?.get("searchText") ?? "";
 
-  // Fetch products from Sanity
+  // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        let data;
-        if (initialCategorySlug) {
-          data = await getProductsByCategory(initialCategorySlug);
-        } else {
-          data = await getProducts();
-        }
+        const url = initialCategorySlug ? `/api/shop/products?category=${initialCategorySlug}` : '/api/shop/products';
+        const res = await fetch(url);
+        const data = await res.json();
         setProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);

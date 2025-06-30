@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, SyntheticEvent } from 'react';
-import { submitReview } from '@/lib/sanity.fetch';
 import { Rating } from 'react-simple-star-rating';
 
 type ReviewFormProps = {
@@ -34,13 +33,22 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
     }
 
     try {
-      await submitReview({
-        reviewerName,
-        reviewerEmail,
-        comment,
-        rating,
-        productId,
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reviewerName,
+          reviewerEmail,
+          comment,
+          rating,
+          productId,
+        }),
       });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit review');
+      }
+
       setSuccess(true);
       setReviewerName('');
       setReviewerEmail('');

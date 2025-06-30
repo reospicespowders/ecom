@@ -6,12 +6,16 @@ import BreadcrumbTwo from "@/components/breadcrumb/breadcrumb-2";
 import SearchArea from "@/components/search/search-area";
 import Footer from "@/layouts/footer/footer";
 import { Suspense } from "react";
+import { getProducts } from '@/lib/sanity.fetch';
+import Breadcrumb from '@/components/breadcrumb/breadcrumb-area';
 
 export const metadata: Metadata = {
   title: "Search - REO spices and powders",
 };
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  const allProducts = await getProducts();
+
   return (
     <Wrapper>
       {/* header start */}
@@ -20,12 +24,12 @@ export default function SearchPage() {
 
       <main>
         {/* breadcrumb-area-start */}
-        <BreadcrumbTwo title="Search" bgClr="grey-bg" />
+        <Breadcrumb title="Search" subtitle="Search" />
         {/* breadcrumb-area-end */}
 
         {/* search area start */}
         <Suspense fallback={<div>Loading search...</div>}>
-          <SearchArea />
+          <SearchArea allProducts={allProducts} />
         </Suspense>
         {/* search area end */}
 

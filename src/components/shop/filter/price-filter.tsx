@@ -4,7 +4,6 @@ import { set_price_value } from "@/redux/features/filter";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import InputRange from "@/components/ui/input-range";
 import { maxPrice } from "@/utils/utils";
-import { getProducts } from "@/lib/sanity.fetch";
 import { IProductData } from "@/types/product-d-t";
 
 const PriceFilter = () => {
@@ -18,7 +17,8 @@ const PriceFilter = () => {
     async function fetchProducts() {
       setLoading(true);
       try {
-        const products = await getProducts();
+        const res = await fetch('/api/shop/products');
+        const products = await res.json();
         setAllProducts(products);
         setMaxPriceValue(maxPrice(products));
         dispatch(set_price_value([0, maxPrice(products)])); // Initialize price range with fetched max price

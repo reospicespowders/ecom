@@ -38,26 +38,7 @@ const slider_setting = {
 		}
 }
 
-const DiscountProducts = () => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const fetchedProducts = await getProducts();
-        setProducts(fetchedProducts.filter((p: any) => p.sale_price));
-      } catch (error) {
-        console.error("Failed to fetch discount products:", error);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
-
+const DiscountProducts = ({ discountProducts }: { discountProducts: any[] }) => {
   return (
     <section className="weekly-product-area grey-bg whight-product">
     <div className="container">
@@ -78,11 +59,9 @@ const DiscountProducts = () => {
              <div className="col-lg-12">
                 <div className="tpnavtab__area pb-40">
                    <div className="tpproduct__arrow p-relative">
-                      {loading ? (
-                        <p>Loading products...</p>
-                      ) : products.length > 0 ? (
+                      {discountProducts.length > 0 ? (
                         <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative">
-                          {products.map((product, index) => (
+                          {discountProducts.map((product, index) => (
                              <SwiperSlide key={index}>
                                 <ProductSingle product={product} progress={true} price_space='mb-5' />
                              </SwiperSlide>

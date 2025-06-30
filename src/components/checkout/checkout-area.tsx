@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ErrorMsg from '../common/error-msg';
 import { IProductData } from '@/types/product-d-t';
-import { getProductById } from '@/lib/sanity.fetch';
 import { useCustomerCheckout } from '@/hooks/useCustomerCheckout';
 import { useUser } from '@clerk/nextjs';
 
@@ -65,11 +64,11 @@ const CheckoutArea = () => {
          const response = await fetch('/api/cart');
          if (!response.ok) throw new Error('Failed to fetch cart items');
          const cartData = await response.json();
-         const productDetailsPromises = cartData.map(async (item: any) => {
-            const product = await getProductById(item.product_id);
-            return { ...product, orderQuantity: item.quantity };
-         });
-         const resolvedProducts = await Promise.all(productDetailsPromises);
+         const resolvedProducts = cartData.map((item: any) => ({
+           ...item.product,
+           orderQuantity: item.quantity,
+           cartId: item.id,
+         }));
          setCartItems(resolvedProducts);
       } catch (error) {
          console.error(error);

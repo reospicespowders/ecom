@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import { fetchCategories } from "@/lib/sanity.fetch";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { add_category, add_sub_category } from "@/redux/features/filter";
 
@@ -8,7 +7,12 @@ const CategoryFilter = () => {
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchCategories().then(setCategories);
+    async function getCategories() {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      setCategories(data);
+    }
+    getCategories();
   }, []);
 
   const {category:parentCategory,subCategory} = useAppSelector((state) => state.filter);

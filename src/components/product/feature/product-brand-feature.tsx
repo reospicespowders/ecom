@@ -1,16 +1,13 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductsByBrand } from '@/lib/sanity.fetch';
 import { IProductData } from '@/types/product-d-t';
 import ProductBrandSingle from '../product-single/product-sm-single';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 
-const ProductBrandFeature = () => {
-  const [brandProducts, setBrandProducts] = useState<IProductData[]>([]);
-  const [loading, setLoading] = useState(true);
+const ProductBrandFeature = ({ brandProducts }: { brandProducts: IProductData[] }) => {
   const selectedBrand = 'REO Spices and Powders';
 
   const slider_setting = {
@@ -40,23 +37,6 @@ const ProductBrandFeature = () => {
       prevEl: '.tpbrandproduct-btn__prv',
     }
   };
-
-  useEffect(() => {
-    async function fetchBrandProducts() {
-      setLoading(true);
-      try {
-        const products = await getProductsByBrand(selectedBrand);
-        console.log('Fetched brand products:', products); // Debug log
-        setBrandProducts(products);
-      } catch (error) {
-        console.error('Failed to fetch brand products:', error);
-        setBrandProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchBrandProducts();
-  }, []);
 
   return (
     <section className="brand-product grey-bg pb-60">
@@ -94,9 +74,7 @@ const ProductBrandFeature = () => {
             </div>
             <div className="col-lg-9">
               <div className="tpbrandproduct__arrow p-relative">
-                {loading ? (
-                  <p>Loading products...</p>
-                ) : brandProducts.length > 0 ? (
+                {brandProducts.length > 0 ? (
                   <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpbrandproduct-active tpslider-bottom p-relative">
                     {brandProducts.slice(0, 8).map((product) => (
                       <SwiperSlide key={product._id}>

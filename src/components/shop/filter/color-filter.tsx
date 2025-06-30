@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { getProducts } from '@/lib/sanity.fetch';
 import { useAppDispatch, useAppSelector } from '@/redux/hook';
 import { add_colors } from '@/redux/features/filter';
 
@@ -14,7 +13,8 @@ const ColorFilter = () => {
     async function fetchColors() {
       setLoading(true);
       try {
-        const products = await getProducts();
+        const res = await fetch('/api/shop/products');
+        const products = await res.json();
         const allColors: string[] = products.flatMap((item: any) => item.color || []); // Ensure color is an array or default to empty
         const unique = [...new Set(allColors)].slice(0, 5);
         setUniqueColors(unique);

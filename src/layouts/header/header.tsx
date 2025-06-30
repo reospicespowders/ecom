@@ -12,6 +12,7 @@ import SearchPopup from '@/components/common/modal/search-popup';
 import CartSidebar from '@/components/sidebar/cart-sidebar';
 import MobileSidebar from '@/components/sidebar/mobile-sidebar';
 import { UserButton, SignedIn, SignedOut, useSession } from "@clerk/nextjs";
+import { fetchCategories } from "@/lib/sanity.fetch";
 
 interface IProps {
   style_2?: boolean;
@@ -59,7 +60,17 @@ const Header = ({
 
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
-  const [isMobileSidebarOpen,setIsMobileSidebarOpen] = React.useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
+  const [categories, setCategories] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    async function getCategories() {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      setCategories(data);
+    }
+    getCategories();
+  }, []);
 
   return (
     <>
@@ -170,7 +181,7 @@ const Header = ({
          {/* cart sidebar end */}
 
          {/* mobile-menu start */}
-         <MobileSidebar isSidebarOpen={isMobileSidebarOpen} setIsSidebarOpen={setIsMobileSidebarOpen} />
+         <MobileSidebar isSidebarOpen={isMobileSidebarOpen} setIsSidebarOpen={setIsMobileSidebarOpen} categories={categories} />
          {/* mobile-menu end */}
      
       </header> 

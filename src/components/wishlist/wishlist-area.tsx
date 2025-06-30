@@ -2,16 +2,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { IProductData } from "@/types/product-d-t";
-import { getProductById } from "@/lib/sanity.fetch";
 import { useSession } from "@clerk/nextjs";
 import Image from "next/image";
 import empty_wishlist_img from "@/assets/img/cart/empty-cart.png";
-import { handleToggleWishlist } from "@/utils/cart";
-import { handleAddToCart } from "@/utils/cart";
+import { handleToggleWishlist, handleAddToCart } from "@/utils/cart";
 
-const WishlistArea = () => {
-  const [wishlistItems, setWishlistItems] = useState<IProductData[]>([]);
-  const [loading, setLoading] = useState(true);
+const WishlistArea = ({ initialWishlistItems }: { initialWishlistItems: IProductData[] }) => {
+  const [wishlistItems, setWishlistItems] = useState<IProductData[]>(initialWishlistItems);
+  const [loading, setLoading] = useState(false);
   const { session } = useSession();
 
   const fetchWishlistDetails = useCallback(async () => {
@@ -25,17 +23,10 @@ const WishlistArea = () => {
       const response = await fetch('/api/wishlist', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
-      if (!response.ok) {
-        throw new Error('Failed to fetch wishlist items');
-      }
+      if (!response.ok) throw new Error('Failed to fetch wishlist items');
+      
       const wishlistData = await response.json();
-
-      const productDetailsPromises = wishlistData.map(async (item: any) => {
-        return await getProductById(item.product_id);
-      });
-
-      const resolvedProducts = await Promise.all(productDetailsPromises);
-      setWishlistItems(resolvedProducts.filter(p => p)); // Filter out any null products
+      setWishlistItems(wishlistData.map((item: any) => ({ ...item.product, cartId: item.id })));
     } catch (error) {
       console.error(error);
     } finally {
@@ -44,10 +35,10 @@ const WishlistArea = () => {
   }, [session]);
 
   useEffect(() => {
-    fetchWishlistDetails();
+    // We still fetch on updates, but not on initial load
     window.addEventListener('wishlistUpdated', fetchWishlistDetails);
     return () => window.removeEventListener('wishlistUpdated', fetchWishlistDetails);
-  }, [session, fetchWishlistDetails]);
+  }, [fetchWishlistDetails]);
 
   const handleRemove = async (productId: string) => {
     const success = await handleToggleWishlist(productId, () => session?.getToken() || Promise.resolve(null), true);
@@ -62,7 +53,7 @@ const WishlistArea = () => {
   }
 
   if (loading) {
-    return <div className="text-center pt-100 pb-100">Loading wishlist...</div>;
+    return <div className="text-center pt-100 pb-100">Updating wishlist...</div>;
   }
 
   return (

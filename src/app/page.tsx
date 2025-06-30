@@ -13,12 +13,20 @@ import TestimonialArea from "@/components/testimonial/testimonial-area";
 import CartArea from "@/components/product/home/cart-area";
 import BlogItems from "@/components/blogs/blog-items";
 import Footer from "@/layouts/footer/footer";
+import InstagramArea from '@/components/instagram/instagram-area';
+import { getLatestBlogsForHome, getProductsByBrand, getProducts } from '@/lib/sanity.fetch';
+import FeatureArea from '@/components/feature/feature-area';
 
 export const metadata: Metadata = {
   title: "REO spices and powders - Multipurpose eCommerce Next js Template"
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const latestBlogs = await getLatestBlogsForHome(4);
+  const brandProducts = await getProductsByBrand('REO Spices and Powders');
+  const allProducts = await getProducts();
+  const discountProducts = allProducts.filter((p: any) => p.sale_price);
+
   return (
     <Wrapper>
       {/* header start */}
@@ -34,20 +42,24 @@ export default function HomePage() {
         <FeatureAreaTwo />
         {/* feature area end */}
 
-        {/* discount product area start */}
-        <DiscountProducts />
-        {/* discount product area end */}
+        {/* product area start */}
+        {/* <TrendingProducts/> */}
+        {/* product area end */}
+
+        {/* weekly product area start */}
+        <DiscountProducts discountProducts={discountProducts} />
+        {/* weekly product area end */}
 
         {/* product banner area start */}
         <ProductBannerAreaTwo />
         {/* product banner area end */}
 
         {/* tab filter products start */}
-        <TabFilterProducts />
+        <TabFilterProducts allProducts={allProducts} />
         {/* tab filter products end */}
 
         {/* all products start */}
-        <TopAllProducts />
+        <TopAllProducts allProducts={allProducts} />
         {/* all products end */}
 
         {/* product banner area start */}
@@ -55,7 +67,7 @@ export default function HomePage() {
         {/* product banner area end */}
 
         {/* product brand feature start */}
-        <ProductBrandFeature />
+        <ProductBrandFeature brandProducts={brandProducts} />
         {/* product brand feature end */}
 
         {/* testimonial area start */}
@@ -66,9 +78,13 @@ export default function HomePage() {
         <CartArea />
         {/* cart area end */}
 
-        {/* blogs start */}
-        <BlogItems spacing="pb-20 pt-50" style_2={true} bottom_show={false}/>
-        {/* blogs end */}
+        {/* blog area start */}
+        <BlogItems blogs={latestBlogs} spacing="pb-20 pt-50" style_2={true} bottom_show={false}/>
+        {/* blog area end */}
+
+        {/* instagram area start */}
+        <InstagramArea />
+        {/* instagram area end */}
       </main>
 
       {/* footer start */}

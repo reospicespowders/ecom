@@ -43,29 +43,14 @@ const slider_setting = {
 // tabs
 const tabs = ['New Arrivals','Features','Best Rate'];
 
-const TabFilterProducts = () => {
+const TabFilterProducts = ({ allProducts }: { allProducts: IProductData[] }) => {
   const [activeTab, setActiveTab] = React.useState(tabs[0]);
-  const [allProducts, setAllProducts] = useState<IProductData[]>([]);
   const [products, setProducts] = React.useState<IProductData[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const fetchedProducts = await getProducts();
-        setAllProducts(fetchedProducts);
-        setProducts(fetchedProducts.slice(-10)); // Initialize with New Arrivals
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        setAllProducts([]);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
+  React.useEffect(() => {
+    // Initially, show "New Arrivals"
+    setProducts([...allProducts].slice(-10));
+  }, [allProducts]);
 
   const handleFilter = (tab: string) => {
     setActiveTab(tab);
@@ -114,9 +99,7 @@ const TabFilterProducts = () => {
                         <div className="tab-content" id="nav-tabContent-tp">
                           <div>
                               <div className="tpproduct__arrow p-relative">
-                                {loading ? (
-                                  <p>Loading products...</p>
-                                ) : products.length > 0 ? (
+                                {products.length > 0 ? (
                                   <Swiper {...slider_setting} modules={[Navigation]} className="swiper-container tpproduct-active-2 tpslider-bottom p-relative tpproduct-priority">
                                     {products.map((product,index) => (
                                         <SwiperSlide key={index}>

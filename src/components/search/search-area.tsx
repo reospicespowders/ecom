@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getProducts } from '@/lib/sanity.fetch';
 import { IProductData } from '@/types/product-d-t';
 import { FourColDots, ListDots, ThreeColDots } from '../svg';
 import usePagination from '@/hooks/use-pagination';
@@ -25,9 +24,9 @@ const col_tabs = [
 ];
 
 
-const SearchArea = () => {
+const SearchArea = ({ allProducts }: { allProducts: IProductData[] }) => {
   const [productItems, setProductItems] = useState<IProductData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(col_tabs[0].title);
   const pagination_per_page = activeTab === "four-col" ? 12 : 9;
   const {currentItems,handlePageClick,pageCount} = usePagination<IProductData>(productItems, pagination_per_page);
@@ -46,25 +45,9 @@ const SearchArea = () => {
   };
 
   useEffect(() => {
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const products = await getProducts();
-        setProductItems(
-          products.filter(
-            (item: IProductData) => titleMatch(item)
-          )
-        );
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        setProductItems([]); // Set to empty array on error
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
+    setProductItems(allProducts.filter(item => titleMatch(item)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText]);
+  }, [searchText, allProducts]);
 
   const handleSorting = (item: { value: string; label: string }) => {
     if (item.value === "new") {

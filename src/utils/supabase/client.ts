@@ -1,3 +1,4 @@
+'use client'
 import { createClient } from '@supabase/supabase-js'
 import { useSession } from '@clerk/nextjs';
 
@@ -8,7 +9,7 @@ export const useClerkSupabaseClient = () => {
 
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       db: {
         schema: 'api'
@@ -141,4 +142,19 @@ export async function getAllCustomers(supabase: any) {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data;
+}
+
+export const supabaseClient = () => {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      db: {
+        schema: 'public',
+      },
+      auth: {
+        persistSession: true,
+      },
+    }
+  )
 } 

@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getProductById } from '@/lib/sanity.fetch';
 
 export async function GET(request: NextRequest) {
   // Check for user session first
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   // RLS will handle user-specific data fetching
   const supabase = createClient();
-  const { data, error } = await supabase
+  const { data: wishlistItems, error } = await supabase
     .from('wishlist')
     .select('*');
 
@@ -20,7 +21,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch wishlist', details: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  if (!wishlistItems) {
+    return NextResponse.json([]);
+  }
+
+  const detailedWishlistItems = await Promise.all(
+    wishlistItems.map(async (item) => {
+      const productDetails = await getProductById(item.product_id);
+      return {
+        ...item,
+        product: productDetails,
+      };
+    })
+  );
+
+  return NextResponse.json(detailedWishlistItems.filter(item => item.product));
 }
 
 export async function POST(request: NextRequest) {

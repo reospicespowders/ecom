@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { fetchCategories } from "@/lib/sanity.fetch";
 import { useRouter } from "next/navigation";
 
 // prop type
@@ -18,7 +17,12 @@ const CategoryArea = ({cls,perView=8,showCount=true}:IProps) => {
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchCategories().then(setCategories);
+    async function getCategories() {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      setCategories(data);
+    }
+    getCategories();
   }, []);
 
   // slider setting

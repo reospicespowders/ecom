@@ -10,15 +10,11 @@ import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
 type IProps = {
   isSidebarOpen: boolean;
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  categories: any[];
 };
 
-const MobileSidebar = ({ isSidebarOpen, setIsSidebarOpen }: IProps) => {
-  const [categories, setCategories] = useState<any[]>([]);
+const MobileSidebar = ({ isSidebarOpen, setIsSidebarOpen, categories }: IProps) => {
   const router = useRouter();
-
-  useEffect(() => {
-    fetchCategories().then(setCategories);
-  }, []);
 
   return (
     <>

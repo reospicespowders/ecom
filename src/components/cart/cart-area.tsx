@@ -3,7 +3,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import CartItem from './cart-item';
 import { IProductData } from '@/types/product-d-t';
-import { getProductById } from '@/lib/sanity.fetch';
 import { useSession } from '@clerk/nextjs';
 
 const CartArea = () => {
@@ -13,6 +12,7 @@ const CartArea = () => {
   const { session } = useSession();
 
   const fetchCartDetails = useCallback(async () => {
+    setLoading(true);
     try {
       const token = await session?.getToken();
       const response = await fetch('/api/cart', {
@@ -22,16 +22,17 @@ const CartArea = () => {
         throw new Error('Failed to fetch cart items');
       }
       const cartData = await response.json();
+      
+      const resolvedProducts = cartData.map((item: any) => ({
+        ...item.product,
+        orderQuantity: item.quantity,
+        cartId: item.id
+      }));
 
-      const productDetailsPromises = cartData.map(async (item: any) => {
-        const product = await getProductById(item.product_id);
-        return { ...product, orderQuantity: item.quantity, cartId: item.id };
-      });
-
-      const resolvedProducts = await Promise.all(productDetailsPromises);
       setCartItems(resolvedProducts);
     } catch (error) {
       console.error(error);
+      setCartItems([]);
     } finally {
       setLoading(false);
     }

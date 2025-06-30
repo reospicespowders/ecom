@@ -13,13 +13,19 @@ import TestimonialArea from "@/components/testimonial/testimonial-area";
 import CartArea from "@/components/product/home/cart-area";
 import BlogItems from "@/components/blogs/blog-items";
 import Footer from "@/layouts/footer/footer";
+import InstagramArea from '@/components/instagram/instagram-area';
+import { getLatestBlogsForHome, getProductsByBrand, getProducts } from '@/lib/sanity.fetch';
 
 export const metadata: Metadata = {
-  title: "Home Three - REO spices and powders",
+  title: "Home - REO spices and powders",
 };
 
+export default async function HomeThreePage() {
+  const latestBlogs = await getLatestBlogsForHome(4);
+  const brandProducts = await getProductsByBrand('REO Spices and Powders');
+  const allProducts = await getProducts();
+  const discountProducts = allProducts.filter((p: any) => p.sale_price);
 
-export default function HomePageTwo() {
   return (
     <Wrapper>
       {/* header start */}
@@ -36,7 +42,7 @@ export default function HomePageTwo() {
         {/* feature area end */}
 
         {/* discount product area start */}
-        <DiscountProducts />
+        <DiscountProducts discountProducts={discountProducts} />
         {/* discount product area end */}
 
         {/* product banner area start */}
@@ -44,11 +50,11 @@ export default function HomePageTwo() {
         {/* product banner area end */}
 
         {/* tab filter products start */}
-        <TabFilterProducts />
+        <TabFilterProducts allProducts={allProducts} />
         {/* tab filter products end */}
 
         {/* all products start */}
-        <TopAllProducts />
+        <TopAllProducts allProducts={allProducts} />
         {/* all products end */}
 
         {/* product banner area start */}
@@ -56,7 +62,7 @@ export default function HomePageTwo() {
         {/* product banner area end */}
 
         {/* product brand feature start */}
-        <ProductBrandFeature />
+        <ProductBrandFeature brandProducts={brandProducts} />
         {/* product brand feature end */}
 
         {/* testimonial area start */}
@@ -67,9 +73,13 @@ export default function HomePageTwo() {
         <CartArea />
         {/* cart area end */}
 
-        {/* blogs start */}
-        <BlogItems spacing="pb-20 pt-50" style_2={true} bottom_show={false}/>
-        {/* blogs end */}
+        {/* blog area start */}
+        <BlogItems blogs={latestBlogs} spacing="pb-20 pt-50" style_2={true} bottom_show={false}/>
+        {/* blog area end */}
+
+        {/* instagram area start */}
+        <InstagramArea />
+        {/* instagram area end */}
       </main>
 
       {/* footer start */}

@@ -3,7 +3,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from '@clerk/nextjs';
-import { getProductById } from '@/lib/sanity.fetch';
 import { IProductData } from '@/types/product-d-t';
 import empty_cart_img from "@/assets/img/cart/empty-cart.png";
 
@@ -42,18 +41,10 @@ const CartSidebar = ({isCartSidebarOpen,setIsCartSidebarOpen}:IProps) => {
       
       if (response.ok) {
         const cartData = await response.json();
-        
-        const itemsWithProducts = await Promise.all(
-          cartData.map(async (item: CartItem) => {
-            const product = await getProductById(item.product_id);
-            return { ...item, product };
-          })
-        );
-        
-        setCartItems(itemsWithProducts);
+        setCartItems(cartData);
         
         // Calculate total
-        const newTotal = itemsWithProducts.reduce((acc, item) => {
+        const newTotal = cartData.reduce((acc: number, item: any) => {
           const price = item.product.sale_price ?? item.product.price;
           return acc + price * item.quantity;
         }, 0);

@@ -19,6 +19,17 @@ const HeaderTwo = () => {
    const [isSearchOpen, setIsSearchOpen] = React.useState(false);
    const [isCartOpen, setIsCartOpen] = React.useState(false);
    const [isMobileSidebarOpen,setIsMobileSidebarOpen] = React.useState(false);
+   const [categories, setCategories] = React.useState<any[]>([]);
+
+   React.useEffect(() => {
+     async function getCategories() {
+       const res = await fetch('/api/categories');
+       const data = await res.json();
+       setCategories(data);
+     }
+     getCategories();
+   }, []);
+
   return (
     <>
        <header>
@@ -133,7 +144,7 @@ const HeaderTwo = () => {
          {/* cart sidebar end */}
 
          {/* mobile-menu start */}
-         <MobileSidebar isSidebarOpen={isMobileSidebarOpen} setIsSidebarOpen={setIsMobileSidebarOpen} />
+         <MobileSidebar isSidebarOpen={isMobileSidebarOpen} setIsSidebarOpen={setIsMobileSidebarOpen} categories={categories} />
          {/* mobile-menu end */}
       </header>
     </>
