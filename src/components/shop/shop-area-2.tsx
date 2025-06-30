@@ -28,7 +28,7 @@ type IProps = {
   list_style?: boolean;
 }
 const ShopAreaTwo = ({list_style=false}:IProps) => {
-  const { products, setProducts,handleSorting } = useProductFilter();
+  const { products, handleSorting } = useProductFilter();
   const [activeTab, setActiveTab] = useState(list_style?col_tabs[2].title:col_tabs[0].title);
   const pagination_per_page = activeTab === "four-col" ? 12 : 9;
   const {currentItems,handlePageClick,pageCount} = usePagination<IProductData>(products, pagination_per_page);

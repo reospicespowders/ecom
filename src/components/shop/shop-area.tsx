@@ -32,7 +32,7 @@ type IProps = {
 };
 
 const ShopArea = ({ category_style = false, shop_right = false, categorySlug }: IProps) => {
-  const { products, setProducts, handleSorting } = useProductFilter(categorySlug);
+  const { products, handleSorting } = useProductFilter(categorySlug);
   const [activeTab, setActiveTab] = useState(col_tabs[0].title);
   const pagination_per_page = activeTab === "four-col" ? 12 : 9;
   const { currentItems, handlePageClick, pageCount } =

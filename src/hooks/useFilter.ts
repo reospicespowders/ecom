@@ -1,102 +1,57 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAppSelector } from '@/redux/hook';
-import { averageRating } from '@/utils/utils';
+import { useProducts } from '@/hooks/useProducts';
 import { IProductData } from '@/types/product-d-t';
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
 
 export function useProductFilter(initialCategorySlug?: string) {
-  const [products, setProducts] = useState<IProductData[]>([]);
-  const { category, subCategory, sizes, colors, brand, priceValue, ratingValue } = useAppSelector((state) => state.filter);
+  const { category, subCategory, brand, priceValue, ratingValue, colors } = useAppSelector((state) => state.filter);
   const searchParams = useSearchParams();
   const searchText = searchParams?.get("searchText") ?? "";
 
-  // Fetch products from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const url = initialCategorySlug ? `/api/shop/products?category=${initialCategorySlug}` : '/api/shop/products';
-        const res = await fetch(url);
-        const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
+  // Fetch products using the useProducts hook
+  const { products: fetchedProducts, isLoading, isError } = useProducts(initialCategorySlug || category, searchText);
 
-    fetchProducts();
-  }, [initialCategorySlug]);
+  // Client-side filtering from the fetched products
+  const filteredProducts = useMemo(() => {
+    let currentFilteredData = fetchedProducts;
 
-  // Memoized filtering logic
-  const filteredProducts = React.useMemo(() => {
-    let currentFilteredData = [...products];
-
-    // Filter by category and subCategory
-    if (!initialCategorySlug) {
-      currentFilteredData = currentFilteredData.filter((p) =>
-        (category && !subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() :
-          (!category && subCategory) ? p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
-            (category && subCategory) ? p.category?.name?.toLowerCase() === category.toLowerCase() && p.category?.name?.toLowerCase() === subCategory.toLowerCase() :
-            true
-      );
+    // Further client-side filtering if needed
+    if (brand) {
+      currentFilteredData = currentFilteredData.filter((p: IProductData) => p.brand?.toLowerCase() === brand.toLowerCase());
     }
-
-    // Filter by price range
-    currentFilteredData = currentFilteredData.filter((p) => p.price >= priceValue[0] && p.price <= priceValue[1]);
-
-    // Filter by colors
-    currentFilteredData = currentFilteredData.filter((p) => {
-        if (colors.length > 0 && p.color) {
-        return (Array.isArray(p.color) ? p.color : [p.color]).some((c) => colors.includes(c));
-        }
-        return true;
-    });
-
-    // Filter by brand
-    currentFilteredData = currentFilteredData.filter((p) => {
-        if (brand) {
-        return p.brand?.toLowerCase() === brand.toLowerCase();
-        }
-        return true;
-    });
-
-    // Filter by rating
-    currentFilteredData = currentFilteredData.filter((p) => {
-        if (ratingValue) {
-          return averageRating(p.reviews) >= ratingValue;
-        }
-        return true;
-      });
-
-    // Filter by search text
-    const titleMatch = (item: IProductData) => {
-      return (
-        !searchText || item.title.toLowerCase().includes(searchText.toLowerCase())
-      );
-    };
-
-    currentFilteredData = currentFilteredData.filter((item) => titleMatch(item));
+    if (priceValue) {
+      currentFilteredData = currentFilteredData.filter((p: IProductData) => p.price >= priceValue[0] && p.price <= priceValue[1]);
+    }
+    // Add other client-side filters here if necessary
 
     return currentFilteredData;
-  }, [products, category, subCategory, colors, brand, priceValue, ratingValue, searchText, initialCategorySlug]);
+  }, [fetchedProducts, brand, priceValue]);
+
+  // The sorting logic can be simplified or moved to the component
+  const [sortedProducts, setSortedProducts] = useState<IProductData[]>([]);
+  useEffect(() => {
+    setSortedProducts(filteredProducts);
+  }, [filteredProducts]);
 
   const handleSorting = (item: { value: string; label: string }) => {
-    let sortedProducts = [...filteredProducts]; // Sort the currently filtered products
+    let sorted = [...filteredProducts];
     if (item.value === "new") {
-      sortedProducts.reverse();
+      // Assuming fetchedProducts are already sorted by date, reverse for 'new'
+      sorted.reverse();
     } else if (item.value === "high") {
-      sortedProducts.sort((a, b) => b.price - a.price);
+      sorted.sort((a, b) => b.price - a.price);
     } else if (item.value === "low") {
-      sortedProducts.sort((a, b) => a.price - b.price);
+      sorted.sort((a, b) => a.price - b.price);
     }
-    setProducts(sortedProducts); // This will update the raw products, which will re-trigger memo and filtering
+    setSortedProducts(sorted);
   };
 
-  // Return filteredProducts instead of products from state
   return {
-    products: filteredProducts,
-    setProducts: (data: IProductData[]) => setProducts(data), // Allow external components to update raw products if needed
+    products: sortedProducts,
+    isLoading,
+    isError,
     handleSorting,
-  }
+  };
 }
