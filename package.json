@@ -58,6 +58,7 @@
     "react-use": "^17.4.0",
     "recharts": "^3.0.2",
     "sass": "^1.69.5",
+    "server-only": "^0.0.1",
     "sharp": "^0.34.2",
     "styled-components": "^6.1.19",
     "swiper": "^11.0.4",

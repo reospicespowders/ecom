@@ -1,3 +1,4 @@
+import 'server-only';
 import { getSafeClient } from './sanity.client';
 import { categoriesQuery } from './sanity.queries';
 
