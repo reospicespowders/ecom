@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRealTimeInventory } from '@/hooks/useRealTimeInventory';
 
 interface InventoryManagerProps {
@@ -6,140 +6,116 @@ interface InventoryManagerProps {
 }
 
 export function InventoryManager({ productId }: InventoryManagerProps) {
-  const { data, loading, error } = useRealTimeInventory(productId);
-  const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
-  const [reason, setReason] = useState('');
+  const { data, loading, error, refetch } = useRealTimeInventory(productId);
+  const [adjustment, setAdjustment] = useState('0');
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleStockAdjustment = async () => {
-    if (!data || adjustmentQuantity === 0) return;
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const adjustmentQuantity = parseInt(adjustment, 10);
+    
+    if (isNaN(adjustmentQuantity) || !data || !data.inventory) return;
 
     try {
       setIsUpdating(true);
-      
       const newStock = data.inventory.current_stock + adjustmentQuantity;
       
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/shop/products?productId=${productId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           current_stock: newStock,
-          reason: reason || 'Manual adjustment',
+          reason: 'Manual adjustment',
           movement_type: adjustmentQuantity > 0 ? 'restock' : 'adjustment'
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update inventory');
+        throw new Error('Failed to update stock');
       }
-
-      setAdjustmentQuantity(0);
-      setReason('');
+      
+      await refetch();
+      setAdjustment('0');
       
     } catch (error) {
-      console.error('Failed to update inventory:', error);
-      alert('Failed to update inventory. Please try again.');
+      console.error('Update failed:', error);
     } finally {
       setIsUpdating(false);
     }
   };
-
-  if (loading) return <div>Loading inventory manager...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data) return <div>No inventory data found</div>;
+  
+  if (loading) return <div>Loading inventory...</div>;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (!data || !data.inventory) return <div>No inventory data available.</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">Inventory Management</h3>
+    <div className="p-4 border rounded-lg bg-gray-50">
+      <h3 className="text-lg font-bold mb-4">Inventory Details</h3>
       
-      {/* Current Status */}
+      {/* Stock Levels */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-3 rounded">
-          <div className="text-sm text-gray-600">Current Stock</div>
-          <div className="text-2xl font-bold text-blue-600">
-            {data.inventory.current_stock}
-          </div>
+        <div className="p-3 bg-white rounded-lg border">
+          <p className="text-sm font-medium text-gray-500">Current Stock</p>
+          <p className="text-2xl font-semibold">{data.inventory.current_stock}</p>
         </div>
-        <div className="bg-yellow-50 p-3 rounded">
-          <div className="text-sm text-gray-600">Reserved</div>
-          <div className="text-2xl font-bold text-yellow-600">
-            {data.inventory.reserved_stock}
-          </div>
+        <div className="p-3 bg-white rounded-lg border">
+          <p className="text-sm font-medium text-gray-500">Reserved</p>
+          <p className="text-2xl font-semibold">{data.inventory.reserved_stock}</p>
         </div>
-        <div className="bg-green-50 p-3 rounded">
-          <div className="text-sm text-gray-600">Available</div>
-          <div className="text-2xl font-bold text-green-600">
-            {data.inventory.available_stock}
-          </div>
+        <div className="p-3 bg-white rounded-lg border">
+          <p className="text-sm font-medium text-gray-500">Available</p>
+          <p className="text-2xl font-semibold">{data.inventory.available_stock}</p>
         </div>
-        <div className="bg-red-50 p-3 rounded">
-          <div className="text-sm text-gray-600">Low Stock Threshold</div>
-          <div className="text-2xl font-bold text-red-600">
-            {data.inventory.low_stock_threshold}
-          </div>
+        <div className="p-3 bg-white rounded-lg border">
+          <p className="text-sm font-medium text-gray-500">Low Stock At</p>
+          <p className="text-2xl font-semibold">{data.inventory.low_stock_threshold}</p>
         </div>
       </div>
 
-      {/* Stock Adjustment */}
-      <div className="border-t pt-4">
-        <h4 className="font-medium mb-3">Adjust Stock</h4>
-        <div className="flex gap-4 items-end">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Adjustment Quantity
-            </label>
-            <input
-              type="number"
-              value={adjustmentQuantity}
-              onChange={(e) => setAdjustmentQuantity(parseInt(e.target.value) || 0)}
-              className="w-24 px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="±0"
-            />
-            <div className="text-xs text-gray-500 mt-1">
-              Use + for increase, - for decrease
+      {/* Manual Adjustment Form */}
+      <form onSubmit={handleUpdate} className="mb-6">
+        <h4 className="font-semibold mb-2">Adjust Stock</h4>
+        <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Adjustment Quantity
+              </label>
+              <input
+                type="number"
+                value={adjustment}
+                onChange={(e) => setAdjustment(e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="±0"
+              />
             </div>
-          </div>
-          
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Reason
-            </label>
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="e.g., Received new shipment, Damaged goods"
-            />
-          </div>
-          
-          <button
-            onClick={handleStockAdjustment}
-            disabled={adjustmentQuantity === 0 || isUpdating}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300"
-          >
-            {isUpdating ? 'Updating...' : 'Update'}
-          </button>
+            <button
+              type="submit"
+              disabled={adjustment === '0' || isUpdating}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300"
+            >
+              {isUpdating ? 'Updating...' : 'Apply Adjustment'}
+            </button>
         </div>
-      </div>
+      </form>
 
-      {/* Recent Movements */}
-      <div className="border-t pt-4 mt-4">
-        <h4 className="font-medium mb-3">Recent Movements</h4>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {(data.inventory as any).inventory_movements?.slice(0, 5).map((movement: any) => (
-            <div key={movement.id} className="flex justify-between text-sm">
-              <span className="capitalize">{movement.movement_type}</span>
-              <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
-                {movement.quantity >= 0 ? '+' : ''}{movement.quantity}
-              </span>
-              <span className="text-gray-500">
-                {new Date(movement.created_at).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
+      {/* Inventory Movements */}
+      <div>
+        <h4 className="font-semibold mb-2">Recent Movements</h4>
+        <div className="text-sm text-gray-600">
+          {(data.inventory as any).inventory_movements?.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {(data.inventory as any).inventory_movements?.slice(0, 5).map((movement: any) => (
+                <li key={movement.id} className="py-2">
+                  <span>{new Date(movement.created_at).toLocaleString()}:</span>
+                  <span className="font-medium"> {movement.quantity_change}</span>
+                  <span> ({movement.movement_type})</span>
+                  <span className="text-gray-500"> - {movement.reason}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No recent movements.</p>
+          )}
         </div>
       </div>
     </div>

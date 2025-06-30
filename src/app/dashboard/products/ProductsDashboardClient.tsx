@@ -23,6 +23,7 @@ import {
 import { InventoryStatus } from '@/components/InventoryStatus';
 import { InventoryManager } from '@/components/admin/InventoryManager';
 import { isAdminUser } from '@/lib/auth-helpers';
+import Image from 'next/image';
 
 export function ProductsDashboardClient() {
   const { user, isLoaded } = useUser();
@@ -284,10 +285,12 @@ export function ProductsDashboardClient() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
                       {product.product.image && (
-                        <img
+                        <Image
                           src={product.product.image}
                           alt={product.product.title}
-                          className="w-16 h-16 object-cover rounded"
+                          width={40}
+                          height={40}
+                          className="rounded-md object-cover"
                         />
                       )}
                       <div className="flex-1">
@@ -312,7 +315,7 @@ export function ProductsDashboardClient() {
                     
                     <div className="flex items-center space-x-4">
                       <InventoryStatus 
-                        productId={product.product._id} 
+                        inventory={product.inventory}
                         showExactCount={isAdmin}
                       />
                       

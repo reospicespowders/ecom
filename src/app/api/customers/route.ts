@@ -5,7 +5,6 @@ import {
   getCustomerProfile,
   updateCustomerProfile,
   createOrUpdateCustomer,
-  getAllCustomers,
 } from '@/utils/supabase/client';
 import { createClient } from '@/utils/supabase/server';
 
@@ -47,8 +46,15 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = createClient();
-    const customers = await getAllCustomers(supabase);
-    
+    // Fetch all customers directly using the server-side client
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching customers:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json(customers);
     
   } catch (error: any) {

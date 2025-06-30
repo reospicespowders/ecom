@@ -3,6 +3,7 @@ import React from 'react';
 import { IReview } from '@/types/product-d-t';
 import { Rating } from 'react-simple-star-rating';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 interface ReviewDisplayProps {
   reviews: IReview[];
@@ -27,7 +28,14 @@ const ReviewDisplay: React.FC<ReviewDisplayProps> = ({ reviews }) => {
           key={review._id}
         >
           <div className="product__details-comment-thumb mr-20">
-            <img src="/assets/img/product/comment/comment-1.jpg" alt="comment-thumb" /> {/* Placeholder, consider dynamic avatars if available */}
+            <div className="tpproduct-details__review-avater pr-15">
+              <Image
+                src={review.reviewerAvatar || '/assets/img/testimonial/test-avater-1.png'}
+                alt={review.reviewerName}
+                width={50}
+                height={50}
+              />
+            </div>
           </div>
           <div className="product__details-comment-content">
             <div className="product__details-comment-top d-sm-flex align-items-start justify-content-between">

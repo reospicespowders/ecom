@@ -1,4 +1,4 @@
-export type IReview = {
+export interface IReview {
   _id: string;
   reviewerName: string;
   reviewerEmail?: string;
@@ -6,6 +6,7 @@ export type IReview = {
   rating: number;
   approved: boolean;
   _createdAt: string;
+  reviewerAvatar?: string;
 }
 
 export interface IProductData {

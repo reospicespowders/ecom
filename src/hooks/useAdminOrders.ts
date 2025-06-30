@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import { useUser } from '@clerk/nextjs';
 
 interface OrderItem {
@@ -45,52 +45,24 @@ interface Order {
   order_items?: OrderItem[];
 }
 
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    if (res.status === 403) {
+      throw new Error('Admin access required');
+    }
+    throw new Error('An error occurred while fetching the data.');
+  }
+  return res.json();
+});
+
 export function useAdminOrders() {
   const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = user?.publicMetadata?.admin_role === 'admin';
 
-  // Check if user is admin
-  useEffect(() => {
-    if (isUserLoaded && isSignedIn && user) {
-      const adminRole = user.publicMetadata?.admin_role;
-      setIsAdmin(adminRole === 'admin');
-    } else {
-      setIsAdmin(false);
-    }
-  }, [isUserLoaded, isSignedIn, user]);
-
-  // Fetch orders (admin only)
-  const fetchOrders = useCallback(async () => {
-    if (!isAdmin) {
-      setError('Admin access required');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/orders');
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Admin access required');
-        }
-        throw new Error(`Failed to fetch orders: ${response.statusText}`);
-      }
-
-      const ordersData = await response.json();
-      setOrders(ordersData);
-    } catch (err) {
-      console.error('Error fetching orders:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch orders');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isAdmin]);
+  const { data: orders, error, mutate } = useSWR<Order[]>(
+    isUserLoaded && isSignedIn && isAdmin ? '/api/orders' : null,
+    fetcher
+  );
 
   // Update order status
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
@@ -112,10 +84,12 @@ export function useAdminOrders() {
       const updatedOrder = await response.json();
       
       // Update local state
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === orderId ? { ...order, ...updatedOrder } : order
-        )
+      mutate(
+        (currentOrders) =>
+          currentOrders?.map((order) =>
+            order.id === orderId ? { ...order, ...updatedOrder } : order
+          ),
+        false
       );
 
       return updatedOrder;
@@ -145,10 +119,12 @@ export function useAdminOrders() {
       const updatedOrder = await response.json();
       
       // Update local state
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === orderId ? { ...order, ...updatedOrder } : order
-        )
+      mutate(
+        (currentOrders) =>
+          currentOrders?.map((order) =>
+            order.id === orderId ? { ...order, ...updatedOrder } : order
+          ),
+        false
       );
 
       return updatedOrder;
@@ -158,22 +134,13 @@ export function useAdminOrders() {
     }
   };
 
-  // Fetch orders when component mounts and user is admin
-  useEffect(() => {
-    if (isUserLoaded && isAdmin) {
-      fetchOrders();
-    } else if (isUserLoaded && !isAdmin) {
-      setIsLoading(false);
-      setError('Admin access required');
-    }
-  }, [isUserLoaded, isAdmin, fetchOrders]);
-
   return {
-    orders,
-    isLoading,
+    orders: orders || [],
+    isLoading: !error && !orders && isUserLoaded && isSignedIn && isAdmin,
+    isError: !!error,
     error,
     isAdmin,
-    fetchOrders,
+    mutate,
     updateOrderStatus,
     updatePaymentStatus,
   };

@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { IProductData } from '@/types/product-d-t';
-import { getProducts, getProductsByCategory } from '@/lib/sanity.fetch';
+import { useProducts } from '@/hooks/useProducts';
 import ProductCard from './product-card';
 
 interface IProps {
@@ -10,32 +8,9 @@ interface IProps {
 }
 
 const ProductArea = ({ categorySlug }: IProps) => {
-  const [products, setProducts] = useState<IProductData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, isLoading, isError } = useProducts(categorySlug);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        let data;
-        if (categorySlug) {
-          data = await getProductsByCategory(categorySlug);
-        } else {
-          data = await getProducts();
-        }
-        console.log('Fetched products:', data); // Debug log
-        setProducts(data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [categorySlug]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="row">
         {[...Array(8)].map((_, index) => (
@@ -51,7 +26,7 @@ const ProductArea = ({ categorySlug }: IProps) => {
     );
   }
 
-  if (products.length === 0) {
+  if (isError || products.length === 0) {
     return (
       <div className="row">
         <div className="col-12">
@@ -63,7 +38,7 @@ const ProductArea = ({ categorySlug }: IProps) => {
 
   return (
     <div className="row">
-      {products.map((product) => (
+      {products.map((product: any) => (
         <div key={product._id} className="col-xl-3 col-lg-4 col-sm-6">
           <ProductCard product={product} />
         </div>

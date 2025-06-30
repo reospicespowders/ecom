@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
-import ProductSingle from "./product-single/product-single";
-import { getProductsByCategory } from '@/lib/sanity.fetch';
+import React from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import ProductSingle from './ProductSingle';
+import { useProducts } from '@/hooks/useProducts';
 import { IProductData } from '@/types/product-d-t';
 
 // slider setting
@@ -39,25 +39,17 @@ const slider_setting = {
     prevEl: ".tpproduct-btn__prv",
   },
 };
-// prop type
-type IProps = {
+
+interface IProps {
   product: IProductData;
-};
+}
 
 const RelatedProducts = ({ product }: IProps) => {
-  const [relatedProducts, setRelatedProducts] = useState<IProductData[]>([]);
+  const { products: relatedProducts, isLoading } = useProducts(product.category?.slug?.current);
 
-  useEffect(() => {
-    const fetchRelated = async () => {
-      if (product.category?.slug?.current) {
-        const fetchedProducts = await getProductsByCategory(product.category.slug.current);
-        setRelatedProducts(fetchedProducts.filter((p: IProductData) => p._id !== product._id));
-      }
-    };
-    fetchRelated();
-  }, [product.category?.slug, product._id]);
+  const filteredProducts = relatedProducts.filter((p: IProductData) => p._id !== product._id);
 
-  if (relatedProducts.length === 0) return null;
+  if (isLoading || filteredProducts.length === 0) return null;
 
   return (
     <section className="product-area whight-product pt-75 pb-80">
@@ -75,8 +67,8 @@ const RelatedProducts = ({ product }: IProps) => {
             modules={[Navigation]}
             className="swiper-container tpproduct-active tpslider-bottom p-relative"
           >
-            {relatedProducts.map((related, index) => (
-              <SwiperSlide key={related._id || index}>
+            {filteredProducts.map((related: IProductData) => (
+              <SwiperSlide key={related._id}>
                 <ProductSingle product={related} />
               </SwiperSlide>
             ))}

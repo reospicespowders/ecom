@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/contexts/SupabaseProvider';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-interface InventoryData {
+export interface InventoryData {
   id: string;
   sanity_product_id: string;
   current_stock: number;
@@ -15,8 +15,9 @@ interface InventoryData {
   low_stock?: boolean;
 }
 
-interface SanityProduct {
+export interface SanityProduct {
   _id: string;
+  id?: number;
   title: string;
   price: number;
   sale_price?: number;
@@ -29,7 +30,7 @@ interface SanityProduct {
   quantity?: number;
   image?: string;
   gallery?: string[];
-  description?: string;
+  description?: any;
   brand?: string;
   status?: string;
   slug?: string;
@@ -38,11 +39,15 @@ interface SanityProduct {
   tags?: string[];
   created_at?: string;
   updated_at?: string;
+  productInfoList?: Array<{ title: string; value: string }>;
+  additionalInfo?: any;
+  reviews?: any[];
+  sold?: number;
 }
 
-interface ProductWithInventory {
+export interface ProductWithInventory {
   product: SanityProduct;
-  inventory: InventoryData;
+  inventory: InventoryData | null;
 }
 
 export function useRealTimeInventory(productId: string) {
@@ -58,10 +63,9 @@ export function useRealTimeInventory(productId: string) {
     if (!supabase) return; // Wait for supabase client
     try {
       setLoading(true);
-      const response = await fetch(`/api/products/${productId}`);
-      
+      const response = await fetch(`/api/shop/products?productId=${productId}`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Failed to fetch product details');
       }
       
       const result = await response.json();
@@ -124,7 +128,7 @@ export function useRealTimeInventory(productId: string) {
   // Reserve stock function
   const reserveStock = useCallback(async (quantity: number, orderId?: string) => {
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/shop/products?productId=${productId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +154,7 @@ export function useRealTimeInventory(productId: string) {
   // Complete sale function
   const completeSale = useCallback(async (quantity: number, orderId: string) => {
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/shop/products?productId=${productId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +180,7 @@ export function useRealTimeInventory(productId: string) {
   // Release reservation function
   const releaseReservation = useCallback(async (quantity: number, orderId: string) => {
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/shop/products?productId=${productId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -198,6 +202,47 @@ export function useRealTimeInventory(productId: string) {
       throw err;
     }
   }, [productId]);
+
+  // Callback for real-time inserts
+  const handleInserts = (payload: any) => {
+    // This is a simplified handler. A real app might need more robust logic.
+    console.log('Real-time insert:', payload);
+    const id = payload.new.product_id;
+    // Refetch the product data to update the UI
+    fetch(`/api/shop/products?productId=${id}`).then(res => res.json())
+      .then(productData => {
+        if (data) {
+          setData({ ...data, product: productData });
+        }
+      });
+  };
+
+  // Callback for real-time updates
+  const handleUpdates = async (payload: any) => {
+    console.log('Real-time update:', payload);
+    const { product_id, ...inventoryInfo } = payload.new;
+    // Refetch product details and merge with new inventory info
+    try {
+      const response = await fetch(`/api/shop/products?productId=${product_id}`);
+      const productData = await response.json();
+      setData({ product: productData, inventory: inventoryInfo });
+    } catch (error) {
+      console.error('Failed to refetch product on update:', error);
+    }
+  };
+
+  // Callback for real-time deletes
+  const handleDeletes = (payload: any) => {
+    console.log('Real-time delete:', payload);
+    // Here, you might want to set the inventory to a default state,
+    // as the inventory record is gone.
+    if (data) {
+      setData({
+        ...data,
+        inventory: null,
+      });
+    }
+  };
 
   return {
     data,
@@ -227,7 +272,7 @@ export function useRealTimeInventoryList(productIds: string[]) {
       try {
         setLoading(true);
         const promises = productIds.map(id => 
-          fetch(`/api/products/${id}`).then(res => res.json())
+          fetch(`/api/shop/products?productId=${id}`).then(res => res.json())
         );
         
         const results = await Promise.all(promises);
@@ -314,18 +359,20 @@ export function useProductsWithInventory(filters?: {
 
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams();
       if (filters?.search) params.append('search', filters.search);
       if (filters?.category) params.append('category', filters.category);
-      if (filters?.lowStock) params.append('lowStock', 'true');
+      if (filters?.lowStock) params.append('lowStock', filters.lowStock.toString());
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
-
-      const response = await fetch(`/api/products?${params.toString()}`);
+      
+      const response = await fetch(`/api/shop/products?${params.toString()}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Failed to fetch products:", errorText);
+        throw new Error(`Failed to fetch products: ${response.statusText}`);
       }
       
       const result = await response.json();

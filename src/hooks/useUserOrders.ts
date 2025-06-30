@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import { useUser } from '@clerk/nextjs';
 
 interface Order {
@@ -25,52 +25,26 @@ interface Order {
   updated_at: string;
 }
 
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    throw new Error('An error occurred while fetching the data.');
+  }
+  return res.json();
+});
+
 export function useUserOrders() {
   const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch user's orders
-  const fetchOrders = useCallback(async () => {
-    if (!isSignedIn || !user) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/orders/user');
-      if (!response.ok) {
-        throw new Error(`Failed to fetch orders: ${response.statusText}`);
-      }
-
-      const ordersData = await response.json();
-      setOrders(ordersData);
-    } catch (err) {
-      console.error('Error fetching user orders:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch orders');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isSignedIn, user]);
-
-  // Fetch orders when component mounts and user is signed in
-  useEffect(() => {
-    if (isUserLoaded && isSignedIn) {
-      fetchOrders();
-    } else if (isUserLoaded && !isSignedIn) {
-      setIsLoading(false);
-      setOrders([]);
-    }
-  }, [isUserLoaded, isSignedIn, fetchOrders]);
+  
+  const { data: orders, error, mutate } = useSWR<Order[]>(
+    isUserLoaded && isSignedIn ? '/api/orders/user' : null,
+    fetcher
+  );
 
   return {
-    orders,
-    isLoading,
+    orders: orders || [],
+    isLoading: !error && !orders && isUserLoaded && isSignedIn,
+    isError: !!error,
     error,
-    fetchOrders,
+    mutate,
   };
 } 

@@ -18,7 +18,7 @@ const fetcher = async (url: string) => {
 };
 
 export function useCustomerProfile() {
-  const { data, error, mutate, isLoading } = useSWR("/api/customers", fetcher, {
+  const { data, error, mutate, isLoading } = useSWR("/api/customers/profile", fetcher, {
     // Don't retry on 404s since that's expected for new users
     shouldRetryOnError: (error) => {
       return !error.message.includes('404');

@@ -1,66 +1,49 @@
 import React from 'react';
 import { InventoryStatus } from './InventoryStatus';
-import { AddToCartButton } from './AddToCartButton';
+import AddToCartButton from './AddToCartButton';
+import Link from 'next/link';
+import { ProductWithInventory } from '@/hooks/useRealTimeInventory';
+import Image from 'next/image';
 
 interface ProductCardProps {
-  product: {
-    _id: string;
-    title: string;
-    price: number;
-    image?: string;
-    description?: string;
-    category?: {
-      name: string;
-    };
-  };
-  onAddToCart?: (productId: string, quantity: number) => void;
+  product: ProductWithInventory;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {product.image && (
+    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+      {product.product.image && (
         <div className="aspect-square overflow-hidden">
-          <img
-            src={product.image}
-            alt={product.title}
-            className="w-full h-full object-cover"
-          />
+          <Link href={`/shop/${product.product.category?.slug}/${product.product.slug}`}>
+            <Image
+              src={product.product.image}
+              alt={product.product.title}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover"
+            />
+          </Link>
         </div>
       )}
       
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg line-clamp-2">{product.title}</h3>
-          <span className="font-bold text-xl text-green-600">
-            ${product.price}
-          </span>
-        </div>
-        
-        {product.category && (
-          <div className="mb-2">
-            <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-              {product.category.name}
-            </span>
+      <div className="mt-4">
+        <div className="text-xs text-gray-500">{product.product.category?.name}</div>
+        <h3 className="font-semibold text-lg line-clamp-2">
+          <Link href={`/shop/${product.product.category?.slug}/${product.product.slug}`}>
+            {product.product.title}
+          </Link>
+        </h3>
+        <div className="mt-2 flex justify-between items-center">
+          <div>
+            <span className="text-xl font-bold">${product.product.price}</span>
+            {product.product.sale_price && (
+              <span className="text-sm text-gray-500 line-through ml-2">${product.product.sale_price}</span>
+            )}
           </div>
-        )}
-        
-        {product.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {product.description}
-          </p>
-        )}
-        
-        <div className="space-y-2">
-          {/* Inventory Status */}
-          <InventoryStatus productId={product._id} />
-          
-          {/* Add to Cart Button */}
-          <AddToCartButton
-            productId={product._id}
-            onAddToCart={onAddToCart}
-            className="w-full"
-          />
+          <InventoryStatus inventory={product.inventory} />
+        </div>
+        <div className="mt-4">
+          <AddToCartButton product={product.product} />
         </div>
       </div>
     </div>

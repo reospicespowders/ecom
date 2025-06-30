@@ -142,7 +142,7 @@ export default function UserOrdersTable() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Fetch data
-  const { orders, isLoading, error } = useUserOrders();
+  const { orders, isLoading, error, mutate } = useUserOrders();
 
   // Helper functions
   const formatDate = (dateString: string | null) => {
@@ -275,7 +275,7 @@ export default function UserOrdersTable() {
       setEditOrder(null);
       setEditForm({});
       // Optionally: refetch orders
-      window.location.reload();
+      mutate();
     } catch (err: any) {
       setSaveError(err.message || "Failed to update order");
     } finally {
