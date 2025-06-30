@@ -61,10 +61,11 @@ export async function GET(req: NextRequest) {
       if (inStock === 'true' && (inventory.available_stock || 0) <= 0) return null;
       if (inStock === 'false' && (inventory.available_stock || 0) > 0) return null;
       return {
-        ...product,
+        product: product,
         inventory: {
           ...inventory,
-          in_stock: (inventory.available_stock || 0) > 0
+          in_stock: (inventory.available_stock || 0) > 0,
+          low_stock: inventory.current_stock <= inventory.low_stock_threshold
         }
       };
     }).filter(Boolean);
